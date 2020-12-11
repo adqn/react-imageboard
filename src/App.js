@@ -11,19 +11,18 @@ const testPosts = [
   }
 ]
 
-const ReplySubmit = () => (null);
-
 const ReplyForm = () => {
   const [name, setName] = useState('');
   const [comment, setComment] = useState('');
   const [post, setPost] = useState({});
+  const [posts, setPosts] = useState([]);
 
   const clearReplyForm = () => {
     setName('');
     setComment('');
   }
 
-  const sendPostAndUpdate = post => {
+  const submitReply = post => {
     new Promise((resolve, reject) =>
       resolve("send post to API, wait for reponse")
     ).then(resolve => "get API confirmation, update posts")
@@ -34,8 +33,15 @@ const ReplyForm = () => {
     const newPost = {name, comment};
     setPost(newPost);
     // console.log(post);
-    clearReplyForm();
-    // sendPostAndUpdate(post);
+    // submitReply(post);
+    // if successful -> clearReplyForm(); navigate to #bottom
+  }
+
+  // combine with useEffect()
+  const retrievePosts = async () => {
+    let res = await fetch("API");
+    let { posts } = res.json();
+    setPosts(posts);
   }
 
   return (
@@ -56,7 +62,7 @@ const ReplyForm = () => {
       <input type="submit" value="Reply" />
     </form>
   )
-};
+}
 
 const Post = () => 
   <div className="Post">
@@ -80,7 +86,7 @@ function App() {
       <ReplyForm />
       <Posts />
     </div>
-  );
+  )
 }
 
 export default App;
