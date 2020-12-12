@@ -1,21 +1,46 @@
-import React, {useState, useEffect, useReducer} from 'react';
-import logo from './logo.svg';
+import React, { useState, useEffect, useReducer } from 'react';
 import './App.css';
 
-const testPosts = [
-  {
-    id: 1,
-    postNumber: 1,
-    name: "Anonymous",
-    content: "fpbp"
-  }
-]
+const Thread = ({ posts }) =>
+  <div className="Thread">
+    {posts.map(post =>
+      <ul>
+        <li>{post.globalId}</li>
+        <li>{post.name}</li>
+        <li>{post.comment}</li>
+      </ul>
+    )}
+  </div>
 
-const ReplyForm = () => {
+function Posts() {
+  const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const retrievePosts = () => (
+    fetch('http://localhost:5001/api/testpost')
+      .then(response => response.json())
+      .then(response => setPosts(response))
+      .then(setIsLoading(false))
+  )
+
+  useEffect(() => {
+    setIsLoading(true);
+    retrievePosts();
+  })
+
+  return (
+    <div className="Posts">
+      {isLoading ? <p>Loading posts...</p>
+      :
+      <Thread posts={posts} />}
+    </div>
+  )
+}
+
+function ReplyForm() {
   const [name, setName] = useState('');
   const [comment, setComment] = useState('');
   const [post, setPost] = useState({});
-  const [posts, setPosts] = useState([]);
 
   const clearReplyForm = () => {
     setName('');
@@ -30,55 +55,32 @@ const ReplyForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const newPost = {name, comment};
+    const newPost = { name, comment };
     setPost(newPost);
     // console.log(post);
     // submitReply(post);
     // if successful -> clearReplyForm(); navigate to #bottom
   }
 
-  // combine with useEffect()
-  const retrievePosts = async () => {
-    let res = await fetch("API");
-    let { posts } = res.json();
-    setPosts(posts);
-  }
-
   return (
     <form onSubmit={handleSubmit}>
       <label>Name: </label><br />
-      <input 
-        type="text" 
-        name="name_id" 
+      <input
+        type="text"
+        name="name_id"
         value={name}
         onChange={(e) => setName(e.target.value)} /><br />
 
       <label>Comment: </label><br />
-      <input 
-        type="text" 
-        name="comment" 
+      <input
+        type="text"
+        name="comment"
         value={comment}
         onChange={(e) => setComment(e.target.value)} /><br />
       <input type="submit" value="Reply" />
     </form>
   )
 }
-
-const Post = () => 
-  <div className="Post">
-    {testPosts.map(post => 
-      <ul>
-        <li>{post.postNumber}</li> 
-        <li>{post.name}</li> 
-        <li>{post.content}</li> 
-      </ul>
-    )}
-  </div>
-
-const Posts = () => 
-  <div className="Posts">
-    <Post />
-  </div>
 
 function App() {
   return (
