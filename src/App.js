@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import './App.css';
 
-const Thread = ({ posts }) =>
-  <div className="Thread">
+const api = option => "http://localhost:5001/api/" + option;
+
+const Posts = ({ posts }) =>
+  <div className="Post">
     {posts.map(post =>
       <ul>
         <li>{post.globalId}</li>
@@ -12,27 +14,31 @@ const Thread = ({ posts }) =>
     )}
   </div>
 
-function Posts() {
+function Thread() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const retrievePosts = () => (
     fetch('http://localhost:5001/api/testpost')
       .then(response => response.json())
-      .then(response => setPosts(response))
-      .then(setIsLoading(false))
+      .then(response => {
+          setPosts(response)
+          setIsLoading(false)
+      })
   )
 
-  useEffect(() => {
-    setIsLoading(true);
-    retrievePosts();
-  })
+  useEffect(
+    () => {
+      setIsLoading(true);
+      retrievePosts();
+  }, []);
 
   return (
-    <div className="Posts">
-      {isLoading ? <p>Loading posts...</p>
+    <div className="ThreadContainer">
+      {isLoading ? 
+      <p>Loading posts...</p>
       :
-      <Thread posts={posts} />}
+      <Posts posts={posts} />}
     </div>
   )
 }
@@ -47,18 +53,28 @@ function ReplyForm() {
     setComment('');
   }
 
+  const postReq = body => {
+    return (
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }
+    )
+  }
+
   const submitReply = post => {
-    new Promise((resolve, reject) =>
-      resolve("send post to API, wait for reponse")
-    ).then(resolve => "get API confirmation, update posts")
+    fetch(api("newpost"), postReq(post))
+      .then(resp => resp.json())
+      .then(resp => console.log(resp))
   }
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const newPost = { name, comment };
-    setPost(newPost);
+    // setPost(newPost);
     // console.log(post);
-    // submitReply(post);
+    submitReply(newPost);
     // if successful -> clearReplyForm(); navigate to #bottom
   }
 
@@ -86,7 +102,7 @@ function App() {
   return (
     <div>
       <ReplyForm />
-      <Posts />
+      <Thread />
     </div>
   )
 }
