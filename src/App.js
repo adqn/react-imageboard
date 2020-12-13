@@ -65,7 +65,6 @@ function ReplyForm() {
 
   const submitReply = post => {
     fetch(api("newpost"), postReq(post))
-      .then(resp => resp.json())
       .then(resp => console.log(resp))
   }
 
