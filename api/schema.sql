@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS post ( 
+    postId INTEGER NOT NULL,
+    threadId INTEGER NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    postName TEXT NOT NULL,
+    comment TEXT NOT NULL,
+    FOREIGN KEY (threadId) 
+    REFERENCES threads (threadId)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS threads (
+    threadId INTEGER NOT NULL,
+    opComment TEXT NOT NULL
+);
