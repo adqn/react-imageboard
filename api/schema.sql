@@ -1,15 +1,24 @@
-CREATE TABLE IF NOT EXISTS post ( 
-    postId INTEGER NOT NULL,
-    threadId INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS posts ( 
+    postId INTEGER PRIMARY KEY AUTOINCREMENT,
+    threadId INTEGER,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    postName TEXT NOT NULL,
+    postName TEXT,
     comment TEXT NOT NULL,
     FOREIGN KEY (threadId) 
     REFERENCES threads (threadId)
         ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS threads (
-    threadId INTEGER NOT NULL,
+    -- boardId INTEGER,
+    threadId INTEGER PRIMARY KEY AUTOINCREMENT,
     opComment TEXT NOT NULL
+    -- FOREIGN KEY (boardId)
+    -- REFERENCES boards (boardId)
+    --     ON DELETE CASCADE
 );
+
+-- CREATE TABLE IF NOT EXISTS boards (
+--     boardId INTEGER PRIMARY KEY AUTOINCREMENT,
+-- );
