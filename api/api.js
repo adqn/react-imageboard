@@ -3,6 +3,7 @@ const path = require('path')
 const express = require('express')
 const sqlite3 = require('sqlite3')
 const fs = require('fs')
+const { resolve } = require('path')
 
 const testPosts = [
   {
@@ -56,54 +57,67 @@ const createDb = () => new Promise((resolve, reject) =>
    })
   }))
 
-createDb();
-
-
 //
 // post functions
 //
 
 function newPost(post) {
   let {threadId, name, comment} = post;
-  const postSql = `INSERT INTO posts 
+  const sql = `INSERT INTO posts 
                    (threadId, postName, comment)
                    VALUES 
                    (${threadId},
                     '${name}', 
                     '${comment}');`
 
-  db.serialize(() => {
-    db.run(postSql, err => {
-      if (err) {console.log(err)}
-    })
-  })               
+  db.run(sql, err => {
+    if (err) {console.log(err)}
+  })
 }
 
 function newThread(post) {
   let {comment} = post;
-  const threadSql = `INSERT INTO threads 
+  const sql = `INSERT INTO threads 
                      (opComment) 
                      VALUES 
                      ('${comment}');`
 
+  let sql2 = 'SELECT * FROM threads ORDER BY threadId DESC LIMIT 1;';
+  let lastThreadId;
+
   db.serialize(() => {
-    db.run(threadSql, err => {
+    db.run(sql, err => {
       if (err) {console.log(err)}
     })
 
-    newPost(post);
+    db.get(sql2, row => {
+      lastThreadId = row.threadId;       
+      post.threadId = lastThreadId;
+      newPost(post)
+    })
   })
 }
 
-// retrieve posts 
-function getPosts() {}
+function getPosts(req) {
+  let {boardId, threadId, postId} = req;
+  let sql;
 
-// retrieve single post 
-function getPost() {
-  sql = ``;
+  if (boardId) {
+    sql = `SELECT * FROM boards WHERE boardId = ${boardId};`
+  }
 
-  db.get(sql, (err, row) => {
-    //
+  if (threadId) {
+    sql = `SELECT * FROM threads WHERE threadId = ${threadId};`
+  }
+
+  if (postId) {
+      sql = `SELECT * FROM posts WHERE postId = ${postId};`
+  }
+
+  db.serialize(() => {
+    db.each(sql, (err, row) => {
+
+    })
   })
 }
 
@@ -113,6 +127,11 @@ function getPost() {
 
 app.get('/', (req, res) => {
   res.send('Hi!')
+})
+
+app.get('/api/newthread', (req, res) => {
+  newThread(req.body)
+  res.sendStatus(200)
 })
 
 app.get('/api/testpost', (req, res) => {
@@ -127,12 +146,15 @@ app.post('/api/newpost', (req, res) => {
 })
 
 // query for thread ID (no separate boards for now)
-app.get('/api/posts', (req, res) => {
-  getPosts();
+app.get('/api/getposts', (req, res) => {
+  getPosts(req.body)
+  res.sendStatus(200)
 })
 
 const port = 5001;
 const server = app.listen(port, () => console.log("Server listening on port: " + port))
+
+createDb();
 
 //
 // tests
