@@ -2,30 +2,23 @@ const http = require('http')
 const path = require('path')
 const express = require('express')
 const sqlite3 = require('sqlite3')
+const fs = require('fs')
 
-const schema = `CREATE TABLE IF NOT EXISTS post ( 
-    postId INTEGER NOT NULL AUTOINCREMENT,
-    threadId INTEGER NOT NULL,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    postName TEXT NOT NULL,
-    comment TEXT NOT NULL,
-    FOREIGN KEY (threadId) 
-    REFERENCES threads (threadId)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS threads (
-    threadId INTEGER NOT NULL,
-    opComment TEXT NOT NULL
-);`
-
-const testPost = [
+const testPosts = [
   {
-    boardId: 1,
     threadId: 1,
-    postId: 1,
     name: "Anonymous",
     comment: "first post"
+  },
+  {
+    threadId: 1,
+    name: "Anonymous",
+    comment: "second post",
+  },
+  {
+    threadId: 1,
+    name: "Anonymous",
+    comment: "third post",
   }
 ]
 
@@ -33,13 +26,13 @@ const app = express()
 
 app.use(express.urlencoded())
 app.use(express.json())
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
   next()
 })
 
-let db = new sqlite3.Database('./api/db/board.db', (err) => {
+let db = new sqlite3.Database('./api/db/testboard.db', (err) => {
   if (err) {
     console.log("Unable to open board database: \n" +  "\t" + err.message)
   } else {
@@ -49,30 +42,56 @@ let db = new sqlite3.Database('./api/db/board.db', (err) => {
   db.exec('PRAGMA foreign_keys = ON;', (err) => {
     if (err) {
       console.log("Couldn't enable foreign keys")
-    } else {
-      console.log("Foreign keys enabled")
-    }
+    } 
   })
 })
 
-db.serialize(() => {
-  db.exec(schema, err => {
-    if (err) {
-      console.log("Unable to import database schema")
-    }
-  })
-})
+const createDb = () => new Promise((resolve, reject) =>
+ fs.readFile( path.join(__dirname, "./schema.sql"),
+  (err, data) => {
+   if (err) return reject(err);
+   db.exec(data.toString(), (err) => {
+    if (err) return reject(err);
+    resolve();
+   })
+  }))
+
+createDb();
+
 
 //
 // post functions
 //
 
-function newPost(postJson) {
-  let { boardId, threadId, postId, name, comment } = postJson;
-  sql = ``;
+function newPost(post) {
+  let {threadId, name, comment} = post;
+  const postSql = `INSERT INTO posts 
+                   (threadId, postName, comment)
+                   VALUES 
+                   (${threadId},
+                    '${name}', 
+                    '${comment}');`
 
-  db.run(sql, function(err) {
-    //
+  db.serialize(() => {
+    db.run(postSql, err => {
+      if (err) {console.log(err)}
+    })
+  })               
+}
+
+function newThread(post) {
+  let {comment} = post;
+  const threadSql = `INSERT INTO threads 
+                     (opComment) 
+                     VALUES 
+                     ('${comment}');`
+
+  db.serialize(() => {
+    db.run(threadSql, err => {
+      if (err) {console.log(err)}
+    })
+
+    newPost(post);
   })
 }
 
@@ -102,6 +121,8 @@ app.get('/api/testpost', (req, res) => {
 
 app.post('/api/newpost', (req, res) => {
   console.log(req.body)
+  // newPost(req.body)
+  //.then
   res.sendStatus(200)
 })
 
@@ -111,4 +132,4 @@ app.get('/api/posts', (req, res) => {
 })
 
 const port = 5001;
-const server = app.listen(port, () => console.log("Imageboard server listening on port: " + port))
+const server = app.listen(port, () => console.log("Server listening on port: " + port))
