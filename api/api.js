@@ -133,3 +133,11 @@ app.get('/api/posts', (req, res) => {
 
 const port = 5001;
 const server = app.listen(port, () => console.log("Server listening on port: " + port))
+
+//
+// tests
+//
+
+// for (let post of testPosts) {
+//   newPost(post);
+// }
