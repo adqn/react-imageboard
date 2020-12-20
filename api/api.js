@@ -93,21 +93,21 @@ function getPosts(req) {
   let result = {};
 
   if (boardId === 'all') {
-    sql = `SELECT * FROM boards WHERE boardId = ${boardId};`
-  } else {
     sql = 'SELECT * FROM boards;'
+  } else {
+    sql = `SELECT * FROM boards WHERE boardId = ${boardId};`
   }
 
   if (threadId === 'all') {
-    sql = `SELECT * FROM threads WHERE threadId = ${threadId};`
-  } else {
     sql = 'SELECT * FROM threads;'
+  } else {
+    sql = `SELECT * FROM threads WHERE threadId = ${threadId};`
   }
 
   if (postId === 'all') {
-      sql = `SELECT * FROM posts WHERE postId = ${postId};`
-  } else {
       sql = 'SELECT * FROM posts;'
+  } else {
+      sql = `SELECT * FROM posts WHERE postId = ${postId};`
   }
 
   db.serialize(() => {
