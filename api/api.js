@@ -3,7 +3,6 @@ const path = require('path')
 const express = require('express')
 const sqlite3 = require('sqlite3')
 const fs = require('fs')
-const { resolve } = require('path')
 
 const testPosts = [
   {
@@ -22,16 +21,6 @@ const testPosts = [
     comment: "third post",
   }
 ]
-
-const app = express() 
-
-app.use(express.urlencoded())
-app.use(express.json())
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*")
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-  next()
-})
 
 let db = new sqlite3.Database('./api/db/testboard.db', (err) => {
   if (err) {
@@ -101,17 +90,24 @@ function newThread(post) {
 function getPosts(req) {
   let {boardId, threadId, postId} = req;
   let sql;
+  let result = {};
 
-  if (boardId) {
+  if (boardId === 'all') {
     sql = `SELECT * FROM boards WHERE boardId = ${boardId};`
+  } else {
+    sql = 'SELECT * FROM boards;'
   }
 
-  if (threadId) {
+  if (threadId === 'all') {
     sql = `SELECT * FROM threads WHERE threadId = ${threadId};`
+  } else {
+    sql = 'SELECT * FROM threads;'
   }
 
-  if (postId) {
+  if (postId === 'all') {
       sql = `SELECT * FROM posts WHERE postId = ${postId};`
+  } else {
+      sql = 'SELECT * FROM posts;'
   }
 
   db.serialize(() => {
@@ -124,6 +120,16 @@ function getPosts(req) {
 //
 // routes
 //
+
+const app = express() 
+
+app.use(express.urlencoded())
+app.use(express.json())
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+  next()
+})
 
 app.get('/', (req, res) => {
   res.send('Hi!')
@@ -152,7 +158,7 @@ app.get('/api/getposts', (req, res) => {
 })
 
 const port = 5001;
-const server = app.listen(port, () => console.log("Server listening on port: " + port))
+const server = app.listen(port, () => console.log("Server listening on port " + port))
 
 createDb();
 
