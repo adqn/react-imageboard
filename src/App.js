@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useReducer } from 'react';
-import Post from './components/Post.js';
+import Post from './components/Post';
+import ReplyForm from './components/ReplyForm'
 import './App.css';
 
 const api = option => "http://localhost:5001/api/" + option;
@@ -61,60 +62,6 @@ function Thread() {
   )
 }
 
-function ReplyForm() {
-  const [name, setName] = useState('');
-  const [comment, setComment] = useState('');
-  const [post, setPost] = useState({});
-
-  const clearReplyForm = () => {
-    setName('');
-    setComment('');
-  }
-
-  const postReq = body => {
-    return (
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      }
-    )
-  }
-
-  const submitReply = post => {
-    fetch(api("newpost"), postReq(post))
-      .then(resp => console.log(resp))
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const newPost = { name, comment };
-    // setPost(newPost);
-    // console.log(post);
-    submitReply(newPost);
-    // if successful -> clearReplyForm(); navigate to #bottom
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <label>Name: </label><br />
-      <input
-        type="text"
-        name="name_id"
-        value={name}
-        onChange={(e) => setName(e.target.value)} /><br />
-
-      <label>Comment: </label><br />
-      <input
-        type="text"
-        name="comment"
-        value={comment}
-        onChange={(e) => setComment(e.target.value)} /><br />
-      <input type="submit" value="Reply" />
-    </form>
-  )
-}
-
 function App() {
   const [newPost, setNewPost] = useState(false);
 
@@ -129,7 +76,7 @@ function App() {
 
   return (
     <div>
-      {/* <ReplyForm setNewPost={setNewPost} /> */}
+      <ReplyForm setNewPost={setNewPost} />
       <Thread newPost={newPost} />
     </div>
   )
