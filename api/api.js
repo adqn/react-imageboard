@@ -4,24 +4,6 @@ const express = require('express')
 const sqlite3 = require('sqlite3')
 const fs = require('fs')
 
-const testPosts = [
-  {
-    threadId: 1,
-    name: "Anonymous",
-    comment: "first post"
-  },
-  {
-    threadId: 1,
-    name: "Anonymous",
-    comment: "second post",
-  },
-  {
-    threadId: 1,
-    name: "Anonymous",
-    comment: "third post",
-  }
-]
-
 let db = new sqlite3.Database('./api/db/testboard.db', (err) => {
   if (err) {
     console.log("Unable to open board database: \n" +  "\t" + err.message)
