@@ -136,5 +136,3 @@ createDb();
 // for (let post of testPosts) {
 //   newPost(post);
 // }
-
-// console.log(getPosts())
