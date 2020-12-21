@@ -33,8 +33,8 @@ const createDb = () => new Promise((resolve, reject) =>
 // post functions
 //
 
-function newPost(post) {
-  let {threadId, name, comment} = post;
+function newPost(post, callback) {
+  let {threadId, options, name, comment} = post;
   const sql = `INSERT INTO posts 
                    (threadId, postName, comment)
                    VALUES 
@@ -44,6 +44,7 @@ function newPost(post) {
 
   db.run(sql, err => {
     if (err) {console.log(err)}
+    else {() => callback.sendStatus(200)}
   })
 }
 
@@ -113,7 +114,7 @@ app.get('/api/testpost', (req, res) => {
 
 app.post('/api/newpost', (req, res) => {
   console.log(req.body)
-  // newPost(req.body)
+  newPost(req.body)
   //.then
   res.sendStatus(200)
 })
