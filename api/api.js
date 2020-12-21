@@ -40,6 +40,7 @@ const createDb = () => new Promise((resolve, reject) =>
  fs.readFile( path.join(__dirname, "./schema.sql"),
   (err, data) => {
    if (err) return reject(err);
+
    db.exec(data.toString(), (err) => {
     if (err) return reject(err);
     resolve();
@@ -87,35 +88,18 @@ function newThread(post) {
   })
 }
 
-function getPosts(req) {
-  let {boardId, threadId, postId} = req;
-  let sql;
-  let result = {};
-
-  if (boardId === 'all') {
-    sql = 'SELECT * FROM boards;'
-  } else {
-    sql = `SELECT * FROM boards WHERE boardId = ${boardId};`
-  }
-
-  if (threadId === 'all') {
-    sql = 'SELECT * FROM threads;'
-  } else {
-    sql = `SELECT * FROM threads WHERE threadId = ${threadId};`
-  }
-
-  if (postId === 'all') {
-      sql = 'SELECT * FROM posts;'
-  } else {
-      sql = `SELECT * FROM posts WHERE postId = ${postId};`
-  }
+function getPosts(callback) {
+  // let {boardId, threadId, postId} = req;
+  let sql = `SELECT * FROM posts`;
+  let result = [];
 
   db.serialize(() => {
     db.each(sql, (err, row) => {
-
-    })
+      result.push(row);
+    }, () => callback.send(result))
   })
 }
+
 
 //
 // routes
@@ -131,8 +115,9 @@ app.use((req, res, next) => {
   next()
 })
 
-app.get('/', (req, res) => {
-  res.send('Hi!')
+app.get('/test', (req, res) => {
+  res.writeHead(200, {'content-type': 'text/html'})
+  fs.createReadStream(__dirname + '/test.html').pipe(res)
 })
 
 app.get('/api/newthread', (req, res) => {
@@ -153,8 +138,8 @@ app.post('/api/newpost', (req, res) => {
 
 // query for thread ID (no separate boards for now)
 app.get('/api/getposts', (req, res) => {
-  getPosts(req.body)
-  res.sendStatus(200)
+  getPosts(res)
+  // res.sendStatus(200)
 })
 
 const port = 5001;
@@ -169,3 +154,5 @@ createDb();
 // for (let post of testPosts) {
 //   newPost(post);
 // }
+
+// console.log(getPosts())
