@@ -4,7 +4,7 @@ const express = require('express')
 const sqlite3 = require('sqlite3')
 const fs = require('fs')
 
-let db = new sqlite3.Database('./api/db/testboard.db', (err) => {
+let db = new sqlite3.Database('./api/db/db.db', (err) => {
   if (err) {
     console.log("Unable to open board database: \n" +  "\t" + err.message)
   } else {
@@ -34,14 +34,14 @@ const createDb = () => new Promise((resolve, reject) =>
 //
 
 function newPost(post, callback) {
-  let {threadId, options, name, comment} = post;
-  const sql = `INSERT INTO posts 
+  let {thread, email, name, comment} = post;
+  const sql = `INSERT INTO posts_${board} 
                    VALUES 
                    (null,
-                    ${threadId},
+                    ${thread},
                     current_timestamp,
-                    '${name}', 
-                    '${comment}');`
+                    "${name}", 
+                    "${comment}");`
 
   db.run(sql, err => {
     if (err) {console.log(err)}
@@ -51,32 +51,41 @@ function newPost(post, callback) {
   })
 }
 
-function newThread(post) {
-  let {comment} = post;
-  const sql = `INSERT INTO threads 
-                     (opComment) 
+function newThread(board, post) {
+  let {subject, email, name, comment} = post;
+  const sql = `INSERT INTO posts_${board} 
                      VALUES 
-                     ('${comment}');`
+                     (NULL,
+                      ${newThread},
+                      "${subject}",
+                      current_timestamp,
+                      "${email}",
+                      "${name}",
+                      "${comment}",
+                      NULL);`
 
-  let sql2 = 'SELECT * FROM threads ORDER BY threadId DESC LIMIT 1;';
-  let lastThreadId;
+  let maxThread = 'SELECT * FROM threads ORDER BY thread DESC LIMIT 1;';
+  let newThread;
 
   db.serialize(() => {
-    db.run(sql, err => {
-      if (err) {console.log(err)}
+    db.get(maxThread, row => {
+      newThread = row.thread + 1;
     })
 
-    db.get(sql2, row => {
-      lastThreadId = row.threadId;       
-      post.threadId = lastThreadId;
-      newPost(post)
-    })
+    db.exec(sql)
   })
 }
 
 function getPosts(callback) {
-  // let {boardId, threadId, postId} = req;
-  let sql = `SELECT * FROM posts`;
+  // let {boardId, thread, post} = req;
+  const singlePost = `SELECT FROM posts_${board}
+                      WHERE post = ${post}`
+
+  const postsInThread = `SELECT * FROM posts_${board} 
+                       WHERE
+                       thread = ${thread}`;
+
+  const allPosts = `SELECT * FROM posts_${board}`;
   let result = [];
 
   db.serialize(() => {
@@ -117,9 +126,9 @@ app.get('/api/testpost', (req, res) => {
 
 app.post('/api/newpost', (req, res) => {
   console.log(req.body)
-  newPost(req.body, res)
+  newPost(req.body)
   //.then
-  // res.sendStatus(200)
+  res.sendStatus(200)
 })
 
 // query for thread ID (no separate boards for now)
