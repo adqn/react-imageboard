@@ -11,11 +11,11 @@ let db = new sqlite3.Database('./api/db/db.db', (err) => {
     console.log("Board database up")
   }
 
-  db.exec('PRAGMA foreign_keys = ON;', (err) => {
-    if (err) {
-      console.log("Couldn't enable foreign keys")
-    } 
-  })
+  // db.exec('PRAGMA foreign_keys = ON;', (err) => {
+  //   if (err) {
+  //     console.log("Couldn't enable foreign keys")
+  //   } 
+  // })
 })
 
 const createDb = () => new Promise((resolve, reject) =>
@@ -34,14 +34,17 @@ const createDb = () => new Promise((resolve, reject) =>
 //
 
 function newPost(post, callback) {
-  let {thread, email, name, comment} = post;
+  let {thread, email, name, comment, file} = post;
   const sql = `INSERT INTO posts_${board} 
                    VALUES 
                    (null,
                     ${thread},
+                    null,
                     current_timestamp,
+                    "${email}",
                     "${name}", 
-                    "${comment}");`
+                    "${comment}",
+                    "${file}");`
 
   db.run(sql, err => {
     if (err) {console.log(err)}
@@ -76,16 +79,27 @@ function newThread(board, post) {
   })
 }
 
-function getPosts(callback) {
-  // let {boardId, thread, post} = req;
-  const singlePost = `SELECT FROM posts_${board}
-                      WHERE post = ${post}`
+function getPosts(req, callback) {
+  let {query, board, thread, post} = req;
+  let sql;
 
-  const postsInThread = `SELECT * FROM posts_${board} 
-                       WHERE
-                       thread = ${thread}`;
+  if (query === 'post') {
+    sql = `SELECT * FROM posts_${board}
+                        WHERE post = ${post}`;
+  }
 
-  const allPosts = `SELECT * FROM posts_${board}`;
+  if (query === 'thread') {
+    sql = `SELECT * FROM posts_${board} 
+                        WHERE
+                        thread = ${thread}`;
+  }
+
+  if (query === 'threads') {
+    sql = `SELECT * FROM posts_${board} GROUP BY thread`;
+  }
+
+  // const allPosts = `SELECT * FROM posts_${board}`;
+  let sql;
   let result = [];
 
   db.serialize(() => {
