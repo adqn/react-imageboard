@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import Post from './components/Post';
-import ReplyForm from './components/ReplyForm'
+import ReplyArea from './components/ReplyArea';
 import './App.css';
 
 const api = option => "http://localhost:5001/api/" + option;
+
+// const [threadId, setThreadId] = useState(0);
 
 const Posts = ({ posts }) =>
   <div className="Post">
@@ -17,7 +19,7 @@ const Posts = ({ posts }) =>
     )}
   </div>
 
-function Thread() {
+function Thread({newPost}) {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [countdownTime, setCountdown] = useState(5);
@@ -27,6 +29,7 @@ function Thread() {
       .then(response => response.json())
       .then(response => {
           setPosts(response)
+          // setThreadId(response.threadId)
           setIsLoading(false)
       })
   )
@@ -76,7 +79,20 @@ function App() {
 
   return (
     <div>
-      <ReplyForm setNewPost={setNewPost} />
+      <div class="boardBanner">
+          {/* <div id="bannerCnt" class="title desktop" data-src="30.gif"></div> */}
+          <div class="boardTitle">/soup/ - soupchan</div>
+      </div>
+      
+      <ReplyArea 
+        // setNewPost={setNewPost} 
+        // threadId={threadId} 
+        />
+
+      <hr class="desktop" id="op" />
+      <div class="navLinks desktop">[<a href="//" accesskey="a">Return</a>] [<a href="//catalog">Catalog</a>] [<a
+              href="#bottom">Bottom</a>]</div>
+
       <Thread newPost={newPost} />
     </div>
   )
