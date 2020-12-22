@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 const api = option => "http://localhost:5001/api/" + option;
 
@@ -7,6 +7,7 @@ const ReplyForm = ({threadId}) => {
   const [options, setOptions] = useState("");
   const [comment, setComment] = useState("");
   const [newPost, setNewPost] = useState({});
+  const [postStatus, setPostStatus] = useState("");
 
   const clearReplyForm = () => {
     setName("");
@@ -18,12 +19,17 @@ const ReplyForm = ({threadId}) => {
     fetch(api("newpost"), postReq(post))
       .then(resp => { 
         if (resp.status === 200) {
-          console.log(resp.status)
+          setPostStatus("Post successful!")
           clearReplyForm();
           // setNewPost(true);
         }
       })
-      // .then(clearReplyForm());
+      .catch(err => {
+        console.log(err);
+        setPostStatus("Error: Could not submit post")
+      })
+    
+      setTimeout(() => setPostStatus(""), 3000);
   }
 
   const postReq = body => {
@@ -39,13 +45,11 @@ const ReplyForm = ({threadId}) => {
   const handleSubmit = (e) => {
     let post;
 
-    if (name === "") {
-      post = ({ threadId: 1, name: 'Anonyomous', options: options, comment: comment });
-    } else {
-      post = ({ threadId: 1, name: name, options: options, comment: comment});
-    }
+    name === "" ? 
+    post = { threadId: 1, name: 'Anonyomous', options: options, comment: comment } :
+    post = { threadId: 1, name: name, options: options, comment: comment}
 
-    console.log(post);
+    setPostStatus("Submitting post...")
     submitReply(post);
 
     e.preventDefault();
@@ -113,11 +117,14 @@ const ReplyForm = ({threadId}) => {
 
               <tr data-type="File">
                 <td>File</td>
-                <td><input id="postFile" name="upfile" type="file" tabindex="7" /></td>
+                <td><input id="postFile" name="upfile" type="file" tabindex="7" onChange={(e) => console.log(e.target.value)} /></td>
               </tr>
             </tbody>
           </table>
       </table>
+      <div className="postStatus">
+        {postStatus}
+      </div>
     </div>
   )
 }
