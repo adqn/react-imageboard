@@ -18,19 +18,10 @@ CREATE TABLE IF NOT EXISTS posts_know (
     file TEXT DEFAULT NULL
 );
 
--- CREATE TABLE IF NOT EXISTS threads (
---     -- boardId INTEGER,
---     threadId INTEGER PRIMARY KEY AUTOINCREMENT,
---     opComment TEXT NOT NULL
---     -- FOREIGN KEY (boardId)
---     -- REFERENCES boards (boardId)
---     --     ON DELETE CASCADE
--- );
-
 CREATE TABLE IF NOT EXISTS boards (
-    uri TEXT
-    boardId INTEGER PRIMARY KEY AUTOINCREMENT,
-    description TEXT,
+    uri TEXT,
+    title TEXT NOT NULL,
+    subtitle TEXT,
 );
 -- 
 INSERT INTO boards VALUES
