@@ -2,10 +2,11 @@ import React, {useState} from 'react';
 
 const api = option => "http://localhost:5001/api/" + option;
 
-const ReplyForm = () => {
+const ReplyForm = ({threadId}) => {
   const [name, setName] = useState("");
   const [options, setOptions] = useState("");
   const [comment, setComment] = useState("");
+  const [newPost, setNewPost] = useState({});
 
   const clearReplyForm = () => {
     setName("");
@@ -13,9 +14,16 @@ const ReplyForm = () => {
     setComment("");
   }
 
-  const submitReply = post => {
+  const submitReply = (post) => {
     fetch(api("newpost"), postReq(post))
-      .then(resp => console.log(resp))
+      .then(resp => { 
+        if (resp.status === 200) {
+          console.log(resp.status)
+          clearReplyForm();
+          // setNewPost(true);
+        }
+      })
+      // .then(clearReplyForm());
   }
 
   const postReq = body => {
@@ -29,12 +37,18 @@ const ReplyForm = () => {
   }
   
   const handleSubmit = (e) => {
+    let post;
+
+    if (name === "") {
+      post = ({ threadId: 1, name: 'Anonyomous', options: options, comment: comment });
+    } else {
+      post = ({ threadId: 1, name: name, options: options, comment: comment});
+    }
+
+    console.log(post);
+    submitReply(post);
+
     e.preventDefault();
-    const newPost = { name, options, comment };
-    // setPost(newPost);
-    // console.log(post);
-    // submitReply(newPost);
-    // if successful -> clearReplyForm(); navigate to #bottom
   }
 
   return (
@@ -56,6 +70,7 @@ const ReplyForm = () => {
                     name="name" type="text"
                     tabindex="1"
                     placeholder="Anonymous" 
+                    value={name}
                     onChange={(e) => setName(e.target.value)}
                     />
                 </td>
@@ -68,6 +83,7 @@ const ReplyForm = () => {
                     name="email"
                     type="text"
                     tabindex="2" 
+                    value={options}
                     onChange={(e) => setOptions(e.target.value)}
                     />
 
@@ -75,6 +91,7 @@ const ReplyForm = () => {
                     type="submit"
                     value="Post"
                     tabindex="6"
+                    onClick={(e) => handleSubmit(e)}
                     />
                 </td>
               </tr>
@@ -88,6 +105,7 @@ const ReplyForm = () => {
                     rows="4"
                     wrap="soft"
                     tabindex="4"
+                    value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     />
                 </td>
