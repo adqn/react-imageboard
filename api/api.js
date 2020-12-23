@@ -1,8 +1,8 @@
-const http = require('http')
 const path = require('path')
 const express = require('express')
 const sqlite3 = require('sqlite3')
 const fs = require('fs')
+const url = require('url');
 
 let db = new sqlite3.Database('./api/db/db.db', (err) => {
   if (err) {
@@ -10,12 +10,6 @@ let db = new sqlite3.Database('./api/db/db.db', (err) => {
   } else {
     console.log("Board database up")
   }
-
-  // db.exec('PRAGMA foreign_keys = ON;', (err) => {
-  //   if (err) {
-  //     console.log("Couldn't enable foreign keys")
-  //   } 
-  // })
 })
 
 const createDb = () => new Promise((resolve, reject) =>
@@ -98,12 +92,26 @@ function getPosts(req, callback) {
     sql = `SELECT * FROM posts_${board} GROUP BY thread`;
   }
 
-  // const allPosts = `SELECT * FROM posts_${board}`;
-  let sql;
+  if (query === 'opPost') {
+    sql = `SELECT * FROM posts_${board}
+              GROUP BY thread`;
+  }
+
   let result = [];
 
   db.serialize(() => {
     db.each(sql, (err, row) => {
+      result.push(row);
+    }, () => callback.send(result))
+  })
+}
+
+const getBoards = (callback) => {
+  const sql = `SELECT * FROM boards;`;
+  let result = [];
+
+  db.serialize(() => {
+    db.each(sql, (err, row) => {        
       result.push(row);
     }, () => callback.send(result))
   })
@@ -147,10 +155,14 @@ app.post('/api/newpost', (req, res) => {
 
 // query for thread ID (no separate boards for now)
 app.get('/api/getposts', (req, res) => {
-  getPosts(res)
+  const query = url.parse(req.url, true).query;
+  getPosts(query, res);
   // res.sendStatus(200)
 })
 
+app.get('/api/getboards', (req, res) => {
+  getBoards(res);
+})
 const port = 5001;
 const server = app.listen(port, () => console.log("Server listening on port " + port))
 
