@@ -19,6 +19,7 @@ const api = option => "http://localhost:5001/api/" + option;
 function App() {
   const [newPost, setNewPost] = useState(false);
   const [boards, setBoards] = useState(null);
+  const [threads, setThreads] = useState(null);
 
   const NotFound = () =>
     <div>404!</div>
@@ -52,6 +53,9 @@ function App() {
     }
   }
 
+  const renderThreadRoutes = routerProps => {
+
+  }
 
   useEffect(() => {
     getBoards();
@@ -61,14 +65,6 @@ function App() {
     <div>
       <Router>
         <Switch>
-          {/* Use board URIs as incoming prop with board.map() */}
-          {/* <Route path="/b/catalog">
-            <div class="boardBanner">
-                <div id="bannerCnt" class="title desktop" data-src="30.gif"></div>
-                <div class="boardTitle">/b/ - Random</div>
-            </div>
-            <Catalog board={"b"} />
-          </Route> */}
           <Route exact path="/">
             <div className="header">
               <span id="homename">soupchan</span><br />
@@ -80,11 +76,16 @@ function App() {
             <div className="News">
             </div>
           </Route>
-          {boards ? 
-           <Route path = '/:uri' render={routerProps => renderBoardRoutes(routerProps)} /> :
-           null
+          {
+            boards ? 
+            <Route path = '/:uri' render={routerProps => renderBoardRoutes(routerProps)} /> :
+            null
           }
-          {/* <Route path = ':uri/:thread' render={() => renderBoardRoutes()} /> */}
+          {
+            threads ?
+            <Route path = '/:uri/:thread' render={routerProps => renderBoardRoutes(routerProps)} /> :
+            null
+          }
           {/* <Route component = {NotFound} /> */}
         </Switch>
       </Router>
