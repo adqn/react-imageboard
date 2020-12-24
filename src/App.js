@@ -33,30 +33,6 @@ function App() {
       .then(resp => setBoards(resp))
       .then(() => getRoutes())
 
-  // const getThreads = async (callback) => {
-  //   let threadsRetrieved = [3];
-  //   let promises = [];
-
-  //   if (boards) {
-  //     for (let board of boards) {
-  //       const reqString = `/?query=threads&board=${board.uri}&thread=null&post=null`;
-
-  //       promises.push(
-  //         fetch(api("getposts" + reqString), { cache: "reload" })
-  //           .then(resp => resp.json())
-  //           .then(resp => {
-  //             threadsRetrieved.push({ uri: board.uri, threads: resp })
-  //           })
-  //       )
-  //     }
-
-  //     await Promise.all(promises).then(() => {
-  //       setThreads(threadsRetrieved);
-  //       setIsLoading(false);
-  //     })
-  //   }
-  // };
-
   const getRoutes = () => {
     fetch(api("routes"))
       .then(resp => resp.json())
@@ -100,43 +76,6 @@ function App() {
       return <NotFound />;
     }
   }
-
-  // const renderThreadRoutes = (routerProps) => {
-  //   let threadId = parseInt(routerProps.match.params.id);
-  //   let uri = routerProps.match.params.uri;
-  //   let foundThread = null;
-  //   let foundBoard = null;
-  //   let validBoard = false;
-  //   // console.log(threads);
-
-  //   for (let board of boards) {
-  //     if (board.uri === uri) {
-  //       validBoard = true;
-  //     }
-  //   }
-
-  //   if (validBoard) {
-  //     foundBoard = threads.find(threadObj => threadObj.uri === uri);
-  //     console.log("aaa");
-
-  //     if (foundBoard) {
-  //       console.log("WHAT")
-  //       foundThread = foundBoard.threads.find(threadsObj => threadsObj.thread === threadId)
-
-  //       if (foundThread) {
-  //         console.log(foundThread);
-  //         return (
-  //           <div>
-  //             <ReplyForm board={uri} threadId={threadId} />
-  //             <Thread uri={uri} id={threadId} />
-  //           </div>
-  //         )
-  //       } else {
-  //         return <NotFound />;
-  //       }
-  //     } else {console.log("failed")}
-  //   } else {return <NotFound />}
-  // };
 
   const Home = () =>
     <div>
