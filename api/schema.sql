@@ -1,31 +1,33 @@
 CREATE TABLE IF NOT EXISTS posts_b ( 
-    post INTEGER NOT NULL UNIQUE AUTOINCREMENT,
+    post INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     thread INTEGER DEFAULT NULL,
+    subject TEXT DEFAULT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email TEXT DEFAULT NULL,
-    postName TEXT,
+    name TEXT,
     comment TEXT,
     file TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS posts_know ( 
-    post INTEGER NOT NULL UNIQUE AUTOINCREMENT,
+    post INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     thread INTEGER DEFAULT NULL,
+    subject TEXT DEFAULT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email TEXT DEFAULT NULL,
-    postName TEXT,
+    name TEXT,
     comment TEXT,
     file TEXT DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS boards (
-    uri TEXT,
+    uri TEXT NOT NULL PRIMARY KEY,
     title TEXT NOT NULL,
-    subtitle TEXT,
+    subtitle TEXT DEFAULT NULL
 );
 -- 
-INSERT INTO boards VALUES
-('b', 'Random', NULL)
+-- INSERT INTO boards VALUES
+-- ('b', 'Random', NULL);
 
-INSERT INTO boards VALUES
-('know', 'Knowledge and Information', NULL)
+-- INSERT INTO boards VALUES
+-- ('know', 'Knowledge and Information', NULL);
