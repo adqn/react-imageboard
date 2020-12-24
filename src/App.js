@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useCallback } from "react";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import axios from 'axios';
 import Post from "./components/Post";
 import ReplyArea from "./components/ReplyArea";
 import Thread from "./components/Thread";
@@ -12,45 +13,43 @@ const api = (option) => "http://localhost:5001/api/" + option;
 function App() {
   const [boards, setBoards] = useState(null);
   const [threads, setThreads] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const NotFound = () => <div>404!</div>;
+  const NotFound = () => <div>404!</div>
+  const DefaultLoading = () => <div>Loading...</div>
 
   const getBoards = () =>
-    fetch(api("getboards"))
+    fetch(api("getboards"), { cache: "reload" })
       .then((resp) => resp.json())
-      .then((resp) => setBoards(resp))
-      // .then((resp) => callback(resp))
+      .then((resp) => {
+        setBoards(resp);
+        getThreads();
+      })
 
-  const getThreads = () => {
-    // return new Promise((resolve, reject) => {
+  const getThreads = async (callback) => {
+    let threadsRetrieved = [3];
+    let promises = [];
 
-    // })
-    let updatedThreads = new Array;
-    let fetches = [];
-
-    if (boards != null) {
-      console.log(boards);
+    if (boards) {
       for (let board of boards) {
-        console.log(board.uri);
         const reqString = `/?query=threads&board=${board.uri}&thread=null&post=null`;
 
-        fetches.push(
-          fetch(api("getposts" + reqString))
-            // .then((resp) => resp.json())
-            .then((resp) => {
-              updatedThreads.push({ uri: board.uri, threads: resp.json() });
+        promises.push(
+          fetch(api("getposts" + reqString), { cache: "reload" })
+            .then(resp => resp.json())
+            .then(resp => {
+              threadsRetrieved.push({ uri: board.uri, threads: resp })
             })
-        );
+        )
       }
-    }
 
-    Promise.all(fetches).then(() => {
-      setThreads(updatedThreads);
-      console.log(updatedThreads);
-      // if (threads != null) {
-      //   setThreads([...threads, { board: board.uri, threads: resp }]);
-      // } else { setThreads([{ board: board.uri, threads: resp }])}
-    })
+      await Promise.all(promises).then(() => {
+        setThreads(threadsRetrieved);
+        setIsLoading(false);
+        // console.log(threadsRetrieved);
+        // callback();
+      })
+    }
   };
 
   const renderBoardRoutes = (routerProps) => {
@@ -63,10 +62,10 @@ function App() {
           <div class="boardBanner">
             {/* <div id="bannerCnt" class="title desktop" data-src="30.gif"></div> */}
             <div class="boardTitle">
-              {foundBoard.uri} - {foundBoard.title}
+              /{boardUri}/ - {foundBoard.title}
             </div>
           </div>
-          <Catalog board={foundBoard.uri} />
+          <Catalog board={boardUri} />
         </div>
       );
     } else {
@@ -75,57 +74,70 @@ function App() {
   };
 
   const renderThreadRoutes = (routerProps) => {
-    let boardUri = routerProps.match.params.uri;
-    let threadId = parseInt(routerProps.match.params.threadId);
-    let thread = null;
+    let threadId = parseInt(routerProps.match.params.id);
+    let uri = routerProps.match.params.uri;
+    let foundThread = null;
+    let foundBoard = null;
+    let validBoard = false;
+    // console.log(threads);
 
-    console.log("what");
-    thread = threads.find(threadObj => threadObj.threads.thread === threadId && threadObj.board === boardUri);
+    for (let board of boards) {
+      if (board.uri === uri) {
+        validBoard = true;
+      }
+    }
 
-    if (thread != undefined) {
-      console.log(thread);
-      return <Thread uri={boardUri} id={threadId} />;
-    } else {
-      return <NotFound />;
+    if (validBoard) {
+      foundBoard = threads.find(threadObj => threadObj.uri === uri);
+      console.log("aaa");
+
+      if (foundBoard) {
+        console.log("WHAT")
+        foundThread = foundBoard.threads.find(threadsObj => threadsObj.thread === threadId)
+
+        if (foundThread) {
+          console.log(foundThread);
+          return <Thread uri={uri} id={threadId} />;
+        } else {
+          return <NotFound />;
+        }
+      } else {console.log("failed")}
     }
   };
-  
+
+  const Home = () =>
+    <div>
+      <div className="header">
+        <span id="homename">soupchan</span>
+        <br />
+        <img src={yukkuri} />
+        <br />
+        <span id="imgtxt">
+          <i>"Take it easy!"</i>
+        </span>
+      </div>
+      <div className="Home"></div>
+      <div className="News"></div>
+    </div>
+
+  const testProps = props => console.log(props.match.params.uri, props.match.params.id)
 
   useEffect(() => {
     getBoards();
-    getThreads();
+    // getThreads(() => setIsLoading(false));
   }, []);
 
   return (
     <div>
       <Router>
         <Switch>
-          <Route exact path="/">
-            <div className="header">
-              <span id="homename">soupchan</span>
-              <br />
-              <img src={yukkuri} />
-              <br />
-              <span id="imgtxt">
-                <i>"Take it easy!"</i>
-              </span>
-            </div>
-            <div className="Home"></div>
-            <div className="News"></div>
-          </Route>
-          {boards ? (
-            <Route
-              exact path="/:uri"
-              render={(routerProps) => renderBoardRoutes(routerProps)}
-            />
-          ) : null}
-          {threads ? (
-            <Route
-              exact path="/:uri/thread/:threadId"
-              render={(routerProps) => renderThreadRoutes(routerProps)}
-            />
-          ) : null}
-          {/* <Route component = {NotFound} /> */}
+          <Route exact path="/" component={Home} />
+          {boards ?
+            <Route exact path="/:uri" render={(routerProps) => renderBoardRoutes(routerProps)} /> : <DefaultLoading />}
+          {threads ?
+            <Route exact path="/:uri/thread/:id" render={(routerProps) => renderThreadRoutes(routerProps)} /> : <DefaultLoading />}
+          {isLoading ?
+            <DefaultLoading /> : <Route component={NotFound} />}
         </Switch>
       </Router>
       {/* <hr class="desktop" id="op" />
