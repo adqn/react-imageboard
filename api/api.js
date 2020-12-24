@@ -3,6 +3,7 @@ const express = require("express");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const url = require("url");
+// const async = require('async');
 
 let db = new sqlite3.Database("./api/db/db.db", (err) => {
   if (err) {
@@ -122,10 +123,42 @@ const getBoards = (callback) => {
       (err, row) => {
         result.push(row);
       },
-      () => callback.send(result)
+      () => {
+        if (callback) {
+          callback.send(result);
+        } else {
+          return result;
+        }
+      }
     );
   });
 };
+
+const getRoutes = async (res) => {
+  let boardList = [];
+  let promises = [];
+  let dbCalls = [];
+  const sql = 'SELECT * FROM boards';
+
+  function getThreads(call) {
+    return new Promise((resolve, reject) => {
+        db.all(call.sql, (err, rows) => {
+          resolve({ uri: call.uri, threads: rows })
+          reject(reason => console.log(reason))
+        })
+    });
+  }
+
+  db.each(sql, (err, board) => {
+    dbCalls.push({ uri: board.uri, sql: `SELECT * FROM posts_${board.uri} GROUP BY thread;` })
+  }, () => {
+      dbCalls.forEach(call => {
+        getThreads(call).then(res => boardList.push(res))
+          .then(() => {boardList.length === dbCalls.length ? res.send(boardList) : null})
+      }
+    )
+  })
+} 
 
 //
 // routes
@@ -141,9 +174,9 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  // res.header('Cache-Control',  'no-store, must-revalidate');
-  // res.header('Pragma', 'no-cache');
-  // res.header('Expires', '0');
+  res.header('Cache-Control',  'no-store, must-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
   next();
 });
 
@@ -179,6 +212,10 @@ app.get("/api/getboards", (req, res) => {
   getBoards(res);
 });
 
+app.get("/api/routes", (req, res) => {
+  getRoutes(res);
+});
+
 const port = 5001;
 const server = app.listen(port, () =>
   console.log("Server listening on port " + port)
@@ -193,3 +230,4 @@ createDb();
 // for (let post of testPosts) {
 //   newPost(post);
 // }
+// getRoutes();
