@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useReducer, useCallback } from "react";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import axios from 'axios';
 import Post from "./components/Post";
-import ReplyArea from "./components/ReplyArea";
+import ReplyForm from "./components/ReplyForm";
 import Thread from "./components/Thread";
 import Catalog from "./components/Catalog";
 import "./App.css";
@@ -13,44 +12,56 @@ const api = (option) => "http://localhost:5001/api/" + option;
 function App() {
   const [boards, setBoards] = useState(null);
   const [threads, setThreads] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [routes, setRoutes] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingString, setLoadingString] = useState("Loading.");
+  const [ellipsis, setEllipsis] = useState(0);
 
   const NotFound = () => <div>404!</div>
-  const DefaultLoading = () => <div>Loading...</div>
+  const DefaultLoading = () => <div className="PageStatus">{loadingString}</div>
+  const BoardHeader = ({ uri, title }) =>
+    <div class="boardBanner">
+      {/* <div id="bannerCnt" class="title desktop" data-src="30.gif"></div> */}
+      <div class="boardTitle">
+        /{uri}/ - {title}
+      </div>
+    </div>
 
   const getBoards = () =>
-    fetch(api("getboards"), { cache: "reload" })
-      .then((resp) => resp.json())
-      .then((resp) => {
-        setBoards(resp);
-        getThreads();
-      })
+    fetch(api("getboards"))
+      .then(resp => resp.json())
+      .then(resp => setBoards(resp))
+      .then(() => getRoutes())
 
-  const getThreads = async (callback) => {
-    let threadsRetrieved = [3];
-    let promises = [];
+  // const getThreads = async (callback) => {
+  //   let threadsRetrieved = [3];
+  //   let promises = [];
 
-    if (boards) {
-      for (let board of boards) {
-        const reqString = `/?query=threads&board=${board.uri}&thread=null&post=null`;
+  //   if (boards) {
+  //     for (let board of boards) {
+  //       const reqString = `/?query=threads&board=${board.uri}&thread=null&post=null`;
 
-        promises.push(
-          fetch(api("getposts" + reqString), { cache: "reload" })
-            .then(resp => resp.json())
-            .then(resp => {
-              threadsRetrieved.push({ uri: board.uri, threads: resp })
-            })
-        )
-      }
+  //       promises.push(
+  //         fetch(api("getposts" + reqString), { cache: "reload" })
+  //           .then(resp => resp.json())
+  //           .then(resp => {
+  //             threadsRetrieved.push({ uri: board.uri, threads: resp })
+  //           })
+  //       )
+  //     }
 
-      await Promise.all(promises).then(() => {
-        setThreads(threadsRetrieved);
-        setIsLoading(false);
-        // console.log(threadsRetrieved);
-        // callback();
-      })
-    }
-  };
+  //     await Promise.all(promises).then(() => {
+  //       setThreads(threadsRetrieved);
+  //       setIsLoading(false);
+  //     })
+  //   }
+  // };
+
+  const getRoutes = () => {
+    fetch(api("routes"))
+      .then(resp => resp.json())
+      .then(resp => setRoutes(resp))
+  }
 
   const renderBoardRoutes = (routerProps) => {
     let boardUri = routerProps.match.params.uri;
@@ -59,13 +70,8 @@ function App() {
     if (foundBoard) {
       return (
         <div>
-          <div class="boardBanner">
-            {/* <div id="bannerCnt" class="title desktop" data-src="30.gif"></div> */}
-            <div class="boardTitle">
-              /{boardUri}/ - {foundBoard.title}
-            </div>
-          </div>
-          <Catalog board={boardUri} />
+          <BoardHeader uri={boardUri} title={foundBoard.title} />
+          <Catalog uri={boardUri} />
         </div>
       );
     } else {
@@ -74,36 +80,63 @@ function App() {
   };
 
   const renderThreadRoutes = (routerProps) => {
-    let threadId = parseInt(routerProps.match.params.id);
     let uri = routerProps.match.params.uri;
-    let foundThread = null;
-    let foundBoard = null;
-    let validBoard = false;
-    // console.log(threads);
+    let id = routerProps.match.params.id;
+    let foundUri = routes.find(route => route.uri === uri);
+    let foundId = routes.forEach(route => {
+      route.threads.find(thread => thread.thread === id)
+    })
+    let foundBoard = boards.find(board => board.uri === uri)
 
-    for (let board of boards) {
-      if (board.uri === uri) {
-        validBoard = true;
-      }
+    if ((foundUri)) {
+      return (
+        <div>
+          <BoardHeader uri={uri} title={foundBoard.title} />
+          <ReplyForm board={uri} threadId={id} />
+          <Thread uri={uri} id={id} />
+        </div>
+      )
+    } else {
+      return <NotFound />;
     }
+  }
 
-    if (validBoard) {
-      foundBoard = threads.find(threadObj => threadObj.uri === uri);
-      console.log("aaa");
+  // const renderThreadRoutes = (routerProps) => {
+  //   let threadId = parseInt(routerProps.match.params.id);
+  //   let uri = routerProps.match.params.uri;
+  //   let foundThread = null;
+  //   let foundBoard = null;
+  //   let validBoard = false;
+  //   // console.log(threads);
 
-      if (foundBoard) {
-        console.log("WHAT")
-        foundThread = foundBoard.threads.find(threadsObj => threadsObj.thread === threadId)
+  //   for (let board of boards) {
+  //     if (board.uri === uri) {
+  //       validBoard = true;
+  //     }
+  //   }
 
-        if (foundThread) {
-          console.log(foundThread);
-          return <Thread uri={uri} id={threadId} />;
-        } else {
-          return <NotFound />;
-        }
-      } else {console.log("failed")}
-    }
-  };
+  //   if (validBoard) {
+  //     foundBoard = threads.find(threadObj => threadObj.uri === uri);
+  //     console.log("aaa");
+
+  //     if (foundBoard) {
+  //       console.log("WHAT")
+  //       foundThread = foundBoard.threads.find(threadsObj => threadsObj.thread === threadId)
+
+  //       if (foundThread) {
+  //         console.log(foundThread);
+  //         return (
+  //           <div>
+  //             <ReplyForm board={uri} threadId={threadId} />
+  //             <Thread uri={uri} id={threadId} />
+  //           </div>
+  //         )
+  //       } else {
+  //         return <NotFound />;
+  //       }
+  //     } else {console.log("failed")}
+  //   } else {return <NotFound />}
+  // };
 
   const Home = () =>
     <div>
@@ -120,12 +153,24 @@ function App() {
       <div className="News"></div>
     </div>
 
-  const testProps = props => console.log(props.match.params.uri, props.match.params.id)
+  const animateEllipsis = (count) => {
+    if (ellipsis === count) {
+      setEllipsis(0);
+      setLoadingString("Loading.");
+    } else {
+      setEllipsis(ellipsis + 1);
+      setLoadingString(loadingString + ".");
+    }
+  }
 
   useEffect(() => {
     getBoards();
-    // getThreads(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    let interval = setInterval(() => animateEllipsis(3), 500)
+    return () => clearInterval(interval);
+  }, [loadingString])
 
   return (
     <div>
@@ -134,7 +179,7 @@ function App() {
           <Route exact path="/" component={Home} />
           {boards ?
             <Route exact path="/:uri" render={(routerProps) => renderBoardRoutes(routerProps)} /> : <DefaultLoading />}
-          {threads ?
+          {routes ?
             <Route exact path="/:uri/thread/:id" render={(routerProps) => renderThreadRoutes(routerProps)} /> : <DefaultLoading />}
           {isLoading ?
             <DefaultLoading /> : <Route component={NotFound} />}
