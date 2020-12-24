@@ -29,7 +29,7 @@ const createDb = () =>
 //
 
 function newPost(post, callback) {
-  let { thread, email, name, comment, file } = post;
+  let { board, thread, email, name, comment, file } = post;
   const sql = `INSERT INTO posts_${board} 
                    VALUES 
                    (null,
@@ -141,6 +141,9 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
+  // res.header('Cache-Control',  'no-store, must-revalidate');
+  // res.header('Pragma', 'no-cache');
+  // res.header('Expires', '0');
   next();
 });
 
@@ -175,6 +178,7 @@ app.get("/api/getposts", (req, res) => {
 app.get("/api/getboards", (req, res) => {
   getBoards(res);
 });
+
 const port = 5001;
 const server = app.listen(port, () =>
   console.log("Server listening on port " + port)
