@@ -165,9 +165,6 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  // res.header('Cache-Control',  'no-store, must-revalidate');
-  // res.header('Pragma', 'no-cache');
-  // res.header('Expires', '0');
   next();
 });
 
@@ -190,11 +187,9 @@ app.post("/api/newpost", (req, res) => {
   res.sendStatus(200);
 });
 
-// query for thread ID (no separate boards for now)
 app.get("/api/getposts", (req, res) => {
   const query = url.parse(req.url, true).query;
   getPosts(query, res);
-  // res.sendStatus(200)
 });
 
 app.get("/api/getboards", (req, res) => {
