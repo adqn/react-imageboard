@@ -46,15 +46,15 @@ const uploadFile = (req, res) => {
 function newPost(post, callback) {
   let { board, thread, email, name, comment, file } = post;
   const sql = `INSERT INTO posts_${board} 
-                   VALUES 
-                   (null,
-                    ${thread},
-                    null,
-                    current_timestamp,
-                    "${email}",
-                    "${name}", 
-                    "${comment}",
-                    "${file}");`;
+               VALUES 
+               (null,
+               ${thread},
+               null,
+               current_timestamp,
+               "${email}",
+               "${name}", 
+               "${comment}",
+               "${file}");`;
 
   db.run(sql, (err) => {
     if (err) {
@@ -68,15 +68,15 @@ function newPost(post, callback) {
 function newThread(newThread, res) {
   let { board, thread, subject, email, name, comment, file} = newThread;
   const sql = `INSERT INTO posts_${board} 
-                    VALUES 
-                    (NULL,
-                      "${thread}",
-                      "${subject}",
-                      current_timestamp,
-                      "${email}",
-                      "${name}",
-                      "${comment}",
-                      "${file}");`; 
+               VALUES 
+               (NULL,
+                 "${thread}",
+                 "${subject}",
+                 current_timestamp,
+                 "${email}",
+                 "${name}",
+                 "${comment}",
+                 "${file}");`; 
 
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread"`
   db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200)));
@@ -84,17 +84,18 @@ function newThread(newThread, res) {
 
 function getPosts(req, callback) {
   let { query, board, thread, post } = req;
+  let result = [];
   let sql;
 
   if (query === "post") {
     sql = `SELECT * FROM posts_${board}
-                        WHERE post = ${post}`;
+           WHERE post = ${post}`;
   }
 
   if (query === "thread") {
     sql = `SELECT * FROM posts_${board} 
-                        WHERE
-                        thread = ${thread}`;
+           WHERE
+           thread = ${thread}`;
   }
 
   if (query === "threads") {
@@ -103,10 +104,8 @@ function getPosts(req, callback) {
 
   if (query === "opPost") {
     sql = `SELECT * FROM posts_${board}
-              GROUP BY thread`;
+           GROUP BY thread`;
   }
-
-  let result = [];
 
   db.serialize(() => {
     db.each(
@@ -142,7 +141,6 @@ const getBoards = (callback) => {
 
 const getRoutes = async (res) => {
   let boardList = [];
-  let promises = [];
   let dbCalls = [];
   const sql = 'SELECT * FROM boards';
 
@@ -228,12 +226,3 @@ const server = app.listen(port, () =>
 );
 
 createDb();
-
-//
-// tests
-//
-
-// for (let post of testPosts) {
-//   newPost(post);
-// }
-// getRoutes();
