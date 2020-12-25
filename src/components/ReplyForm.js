@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
+import axios from 'axios';
 
 const api = (option) => "http://localhost:5001/api/" + option;
 
-const ReplyForm = ({ index, uri, threadId, newThreadId }) => {
+const ReplyForm = ({ index, uri, threadId }) => {
   const [subject, setSubject] = useState("")
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [comment, setComment] = useState("");
+  const [file, setFile] = useState(null);
   const [newPost, setNewPost] = useState({});
   const [postStatus, setPostStatus] = useState("");
 
@@ -16,6 +18,20 @@ const ReplyForm = ({ index, uri, threadId, newThreadId }) => {
     setEmail("");
     setComment("");
   };
+
+  const uploadFile = (filename) => 
+    new Promise((resolve, reject) => {
+
+      const formData = new FormData();
+      formData.append(
+        "img",
+        file,
+        filename
+      );
+
+      axios.post(api("uploadfile"), formData)
+        .then(resp => resolve(resp))
+    })
 
   const submitReply = (post) => {
     fetch(api("newpost"), postReq(post))
@@ -57,37 +73,71 @@ const ReplyForm = ({ index, uri, threadId, newThreadId }) => {
     let post;
     let finalName;
     let finalSubject = "null";
+    let newThread = "newthread";
+    let finalFileName = null;
 
     name === "" ? finalName = "Anonymous" : finalName = name;
 
+    if (file) {
+      let epoch = new Date().getTime();
+      let ext = file.name.match(/\..+/)[0];
+
+      finalFileName = epoch + ext;
+    }
+
     if (index) {
-      finalSubject = subject;
+      setPostStatus("Submitting thread...");
+
+      if (file) {
+        finalSubject = subject;
     
-      post = {
-        board: uri,
-        subject: finalSubject,
-        newThreadId,
-        email: email,
-        name: finalName,
-        comment: comment,
-        file: "null"
-      }
+        post = {
+          board: uri,
+          subject: finalSubject,
+          thread: "newthread",
+          email: email,
+          name: finalName,
+          comment: comment,
+          file: finalFileName
+        }
 
-      setPostStatus("Submitting thread...")
-      submitThread(post);
+        uploadFile(finalFileName)
+          .then(res => {
+            if (res.status === 200) {
+              submitThread(post);
+              setPostStatus("Post successful!")
+            } else {
+              setPostStatus("Error: upload failed.")
+            }
+          })
+      } else {
+        setPostStatus("Error: you must select an image when posting a new thread!");
+        return;
+      }
     } else {
-      post = {
-        board: uri,
-        subject: finalSubject,
-        thread: threadId,
-        email: email,
-        name: finalName,
-        comment: comment,
-        file: "null"
-      }
-
       setPostStatus("Submitting post...");
-      submitReply(post);
+
+      if (file) {
+        post = {
+          board: uri,
+          subject: finalSubject,
+          thread: threadId,
+          email: email,
+          name: finalName,
+          comment: comment,
+          file: finalFileName
+        }
+
+        uploadFile(finalFileName)
+          .then(res => {
+            if (res.status === 200) {
+              submitReply(post);
+              setPostStatus("Post successful!")
+            } else {
+              setPostStatus("Error: upload failed.")
+            }
+          })
+      }
     }
 
     e.preventDefault();
@@ -185,7 +235,7 @@ const ReplyForm = ({ index, uri, threadId, newThreadId }) => {
                   name="upfile"
                   type="file"
                   tabindex="7"
-                  onChange={(e) => console.log(e.target.value)}
+                  onChange={(e) => setFile(e.target.files[0])}
                 />
               </td>
             </tr>
