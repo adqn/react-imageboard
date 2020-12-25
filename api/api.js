@@ -51,29 +51,20 @@ function newPost(post, callback) {
   });
 }
 
-function newThread(board, post) {
-  let { subject, email, name, comment } = post;
+function newThread(thread) {
+  let { board, newThreadId, subject, email, name, comment } = thread;
   const sql = `INSERT INTO posts_${board} 
-                     VALUES 
-                     (NULL,
-                      ${newThread},
+                    VALUES 
+                    (NULL,
+                      ${newThreadId},
                       "${subject}",
                       current_timestamp,
                       "${email}",
                       "${name}",
                       "${comment}",
-                      NULL);`;
+                      NULL);`; 
 
-  let maxThread = "SELECT * FROM threads ORDER BY thread DESC LIMIT 1;";
-  let newThread;
-
-  db.serialize(() => {
-    db.get(maxThread, (row) => {
-      newThread = row.thread + 1;
-    });
-
-    db.exec(sql);
-  });
+  db.run(sql);
 }
 
 function getPosts(req, callback) {
@@ -174,9 +165,9 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"
   );
-  res.header('Cache-Control',  'no-store, must-revalidate');
-  res.header('Pragma', 'no-cache');
-  res.header('Expires', '0');
+  // res.header('Cache-Control',  'no-store, must-revalidate');
+  // res.header('Pragma', 'no-cache');
+  // res.header('Expires', '0');
   next();
 });
 
@@ -185,7 +176,7 @@ app.get("/test", (req, res) => {
   fs.createReadStream(__dirname + "/test.html").pipe(res);
 });
 
-app.get("/api/newthread", (req, res) => {
+app.post("/api/newthread", (req, res) => {
   newThread(req.body);
   res.sendStatus(200);
 });
@@ -195,9 +186,7 @@ app.get("/api/testpost", (req, res) => {
 });
 
 app.post("/api/newpost", (req, res) => {
-  console.log(req.body);
   newPost(req.body);
-  //.then
   res.sendStatus(200);
 });
 
