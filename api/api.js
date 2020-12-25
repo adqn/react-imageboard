@@ -48,13 +48,13 @@ function newPost(post, callback) {
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (null,
-               ${thread},
-               null,
-               current_timestamp,
-               "${email}",
-               "${name}", 
-               "${comment}",
-               "${file}");`;
+                ${thread},
+                null,
+                current_timestamp,
+                "${email}",
+                "${name}", 
+                "${comment}",
+                "${file}");`;
 
   db.run(sql, (err) => {
     if (err) {
@@ -70,13 +70,13 @@ function newThread(newThread, res) {
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (NULL,
-                 "${thread}",
-                 "${subject}",
-                 current_timestamp,
-                 "${email}",
-                 "${name}",
-                 "${comment}",
-                 "${file}");`; 
+                "${thread}",
+                "${subject}",
+                current_timestamp,
+                "${email}",
+                "${name}",
+                "${comment}",
+                "${file}");`; 
 
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread"`
   db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200)));
