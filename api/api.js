@@ -1,9 +1,10 @@
 const path = require("path");
 const express = require("express");
+const fileUpload = require("express-fileupload");
 const sqlite3 = require("sqlite3");
 const fs = require("fs");
 const url = require("url");
-// const async = require('async');
+const formidable = require("formidable");
 
 let db = new sqlite3.Database("./api/db/db.db", (err) => {
   if (err) {
@@ -29,6 +30,19 @@ const createDb = () =>
 // post functions
 //
 
+const uploadFile = (req, res) => {
+  if (req.files) {
+    let file = req.files.img
+    let fileName = req.files.img.name;
+    let filePath = path.join(__dirname, './img/');
+
+    file.mv(filePath + fileName);
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(500);
+  }
+}
+
 function newPost(post, callback) {
   let { board, thread, email, name, comment, file } = post;
   const sql = `INSERT INTO posts_${board} 
@@ -51,20 +65,21 @@ function newPost(post, callback) {
   });
 }
 
-function newThread(thread) {
-  let { board, newThreadId, subject, email, name, comment } = thread;
+function newThread(newThread, res) {
+  let { board, thread, subject, email, name, comment, file} = newThread;
   const sql = `INSERT INTO posts_${board} 
                     VALUES 
                     (NULL,
-                      ${newThreadId},
+                      "${thread}",
                       "${subject}",
                       current_timestamp,
                       "${email}",
                       "${name}",
                       "${comment}",
-                      NULL);`; 
+                      "${file}");`; 
 
-  db.run(sql);
+  const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread"`
+  db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200)));
 }
 
 function getPosts(req, callback) {
@@ -167,15 +182,22 @@ app.use((req, res, next) => {
   );
   next();
 });
+app.use(fileUpload({
+  createParentPath: true
+}))
+app.use('/img', express.static('./api/img'));
 
 app.get("/test", (req, res) => {
   res.writeHead(200, { "content-type": "text/html" });
   fs.createReadStream(__dirname + "/test.html").pipe(res);
 });
 
+app.post("/api/uploadfile", (req, res) => {
+  uploadFile(req, res);
+})
+
 app.post("/api/newthread", (req, res) => {
-  newThread(req.body);
-  res.sendStatus(200);
+  newThread(req.body, res);
 });
 
 app.get("/api/testpost", (req, res) => {
