@@ -27,6 +27,24 @@ function App() {
       </div>
     </div>
 
+  const Home = () =>
+    <div>
+      <div className="header">
+        <span id="homename">soupchan</span>
+        <br />
+        <img src={yukkuri} />
+        <br />
+        <span id="imgtxt">
+          <i>"Take it easy!"</i>
+        </span>
+      </div>
+      <div className="Home"></div>
+      <div className="News"></div>
+      {/* {boards.map(board => {
+        <a href={`/${board.uri}`}>{` /${board.uri} `}</a> 
+      })} */}
+    </div>
+    
   const getBoards = () =>
     fetch(api("getboards"))
       .then(resp => resp.json())
@@ -57,18 +75,24 @@ function App() {
 
   const renderThreadRoutes = (routerProps) => {
     let uri = routerProps.match.params.uri;
-    let id = routerProps.match.params.id;
+    let id = parseInt(routerProps.match.params.id);
     let foundUri = routes.find(route => route.uri === uri);
-    let foundId = routes.forEach(route => {
-      route.threads.find(thread => thread.thread === id)
-    })
+    let foundId = null;
     let foundBoard = boards.find(board => board.uri === uri)
+    
+    for (let route of routes) {
+      let tempId = route.threads.find(thread => thread.thread === id && route.uri === uri)
 
-    if ((foundUri)) {
+      if (tempId) {
+        foundId = tempId.thread;
+      }
+    }
+
+    if (foundId) {
       return (
         <div>
           <BoardHeader uri={uri} title={foundBoard.title} />
-          <ReplyForm board={uri} threadId={id} />
+          <ReplyForm index={false} uri={uri} threadId={id} />
           <Thread uri={uri} id={id} />
         </div>
       )
@@ -76,21 +100,6 @@ function App() {
       return <NotFound />;
     }
   }
-
-  const Home = () =>
-    <div>
-      <div className="header">
-        <span id="homename">soupchan</span>
-        <br />
-        <img src={yukkuri} />
-        <br />
-        <span id="imgtxt">
-          <i>"Take it easy!"</i>
-        </span>
-      </div>
-      <div className="Home"></div>
-      <div className="News"></div>
-    </div>
 
   const animateEllipsis = (count) => {
     if (ellipsis === count) {
