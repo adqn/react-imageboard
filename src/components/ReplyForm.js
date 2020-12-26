@@ -39,7 +39,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
         if (resp.status === 200) {
           setPostStatus("Post successful!");
           clearReplyForm();
-          // setNewPost(true);:w
+          // setNewPost(true);
           
         }
       })
