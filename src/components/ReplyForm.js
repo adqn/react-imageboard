@@ -39,7 +39,8 @@ const ReplyForm = ({ index, uri, threadId }) => {
         if (resp.status === 200) {
           setPostStatus("Post successful!");
           clearReplyForm();
-          // setNewPost(true);
+          // setNewPost(true);:w
+          
         }
       })
       .catch((err) => {
@@ -110,6 +111,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
               setPostStatus("Error: upload failed.")
             }
           })
+
       } else {
         setPostStatus("Error: you must select an image when posting a new thread!");
         return;
@@ -137,6 +139,18 @@ const ReplyForm = ({ index, uri, threadId }) => {
               setPostStatus("Error: upload failed.")
             }
           })
+      } else {
+        post = {
+          board: uri,
+          subject: finalSubject,
+          thread: threadId,
+          email: email,
+          name: finalName,
+          comment: comment,
+          file: finalFileName
+        }
+
+        submitReply(post);
       }
     }
 
