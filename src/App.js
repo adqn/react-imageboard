@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import Post from "./components/Post";
 import ReplyForm from "./components/ReplyForm";
 import Thread from "./components/Thread";
-import Catalog from "./components/Catalog";
+import BoardIndex from "./components/BoardIndex";
 import "./App.css";
 import yukkuri from "./static/yukkuri.png";
 
@@ -21,7 +21,6 @@ function App() {
   const DefaultLoading = () => <div className="PageStatus">{loadingString}</div>
   const BoardHeader = ({ uri, title }) =>
     <div class="boardBanner">
-      {/* <div id="bannerCnt" class="title desktop" data-src="30.gif"></div> */}
       <div class="boardTitle">
         /{uri}/ - {title}
       </div>
@@ -44,6 +43,12 @@ function App() {
         <a href={`/${board.uri}`}>{` /${board.uri} `}</a> 
       })} */}
     </div>
+
+  // "authenticate" with api for POST/GETs
+  // token valid per session
+  const getToken = () =>
+    fetch(api("token"))
+      .then(resp => { })
     
   const getBoards = () =>
     fetch(api("getboards"))
@@ -65,7 +70,7 @@ function App() {
       return (
         <div>
           <BoardHeader uri={boardUri} title={foundBoard.title} />
-          <Catalog uri={boardUri} />
+          <BoardIndex uri={boardUri} />
         </div>
       );
     } else {
@@ -133,9 +138,6 @@ function App() {
             <DefaultLoading /> : <Route component={NotFound} />}
         </Switch>
       </Router>
-      {/* <hr class="desktop" id="op" />
-      <div class="navLinks desktop">[<a href="//" accesskey="a">Return</a>] [<a href="//catalog">Catalog</a>] [<a
-              href="#bottom">Bottom</a>]</div> */}
     </div>
   );
 }
