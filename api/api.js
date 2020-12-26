@@ -2,29 +2,38 @@ const path = require("path");
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const sqlite3 = require("sqlite3");
-const fs = require("fs");
+const fs = require("fs")
+    , gm = require('gm').subClass({ imageMagick: true });
 const url = require("url");
 const formidable = require("formidable");
 
+const im = require('./images');
+
 let db = new sqlite3.Database("./api/db/db.db", (err) => {
   if (err) {
-    console.log("Unable to open board database: \n" + "\t" + err.message);
+    console.log("Unable to open database: \n" + "\t" + err.message);
   } else {
-    console.log("Board database up");
+    console.log("Boards database up");
   }
 });
 
-const createDb = () =>
-  new Promise((resolve, reject) =>
-    fs.readFile(path.join(__dirname, "./schema.sql"), (err, data) => {
-      if (err) return reject(err);
+// const createDb = () =>
+//   new Promise((resolve, reject) =>
+//     fs.readFile(path.join(__dirname, "./schema.sql"), (err, data) => {
+//       if (err) return reject(err);
 
-      db.exec(data.toString(), (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    })
-  );
+//       db.exec(data.toString(), (err) => {
+//         if (err) return reject(err);
+//         resolve();
+//       });
+//     })
+//   );
+
+
+///
+/// misc helpers
+///
+
 
 //
 // post functions
@@ -37,6 +46,7 @@ const uploadFile = (req, res) => {
     let filePath = path.join(__dirname, './img/');
 
     file.mv(filePath + fileName);
+    im.resize(fileName)
     res.sendStatus(200);
   } else {
     res.sendStatus(500);
@@ -88,14 +98,11 @@ function getPosts(req, callback) {
   let sql;
 
   if (query === "post") {
-    sql = `SELECT * FROM posts_${board}
-           WHERE post = ${post}`;
+    sql = `SELECT * FROM posts_${board} WHERE post = ${post}`;
   }
 
   if (query === "thread") {
-    sql = `SELECT * FROM posts_${board} 
-           WHERE
-           thread = ${thread}`;
+    sql = `SELECT * FROM posts_${board} WHERE thread = ${thread}`;
   }
 
   if (query === "threads") {
@@ -103,19 +110,14 @@ function getPosts(req, callback) {
   }
 
   if (query === "opPost") {
-    sql = `SELECT * FROM posts_${board}
-           GROUP BY thread`;
+    sql = `SELECT * FROM posts_${board} GROUP BY thread`;
   }
 
-  db.serialize(() => {
-    db.each(
-      sql,
-      (err, row) => {
-        result.push(row);
-      },
-      () => callback.send(result)
-    );
-  });
+  db.each(sql, (err, row) => {
+      result.push(row);
+    },
+    () => callback.send(result)
+  );
 }
 
 const getBoards = (callback) => {
@@ -198,10 +200,6 @@ app.post("/api/newthread", (req, res) => {
   newThread(req.body, res);
 });
 
-app.get("/api/testpost", (req, res) => {
-  res.send(JSON.stringify(testPost));
-});
-
 app.post("/api/newpost", (req, res) => {
   newPost(req.body);
   res.sendStatus(200);
@@ -225,4 +223,4 @@ const server = app.listen(port, () =>
   console.log("Server listening on port " + port)
 );
 
-createDb();
+// createDb();
