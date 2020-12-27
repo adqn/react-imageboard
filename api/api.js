@@ -41,7 +41,6 @@ const processImage = (file, filePath, fileName, callback) => {
 
 const validateFile = fileName => {
   let ext = fileName.match(/[^\.]+$/)[0].toUpperCase();
-  
   let acceptedFileTypes = [
     "JPG",
     "JPEG",
