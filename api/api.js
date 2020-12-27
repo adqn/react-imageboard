@@ -3,7 +3,7 @@ const express = require("express");
 const fileUpload = require("express-fileupload");
 const sqlite3 = require("sqlite3");
 const fs = require("fs")
-    , gm = require('gm').subClass({ imageMagick: true });
+  , gm = require('gm').subClass({ imageMagick: true });
 const url = require("url");
 const formidable = require("formidable");
 
@@ -30,35 +30,42 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
 //   );
 
 //
-// post functions
+// misc
 //
 
-const uploadFile = (req, res) => {
-  if (req.files) {
-    let acceptedFileTypes = [
-      "JPG",
-      "JPEG",
-      "PNG",
-      "BMP",
-      "GIF"
-    ] 
+const validateFile = file => {
+  let fileName = file.name;
+  let filePath = path.join(__dirname, './img/');
+  let ext = fileName.match(/[^\.]+$/)[0].toUpperCase();
+  
+  let acceptedFileTypes = [
+    "JPG",
+    "JPEG",
+    "PNG",
+    "BMP",
+    "GIF"
+  ]
 
-    let file = req.files.img
-    let fileName = req.files.img.name;
-    let filePath = path.join(__dirname, './img/');
-    let ext = fileName.match(/[^\.]+$/)[0].toUpperCase();
-
-    if (acceptedFileTypes.find(type => type === ext )) {
-      file.mv(filePath + fileName);
-      im.resize(fileName)
-      res.sendStatus(200);
-    } else {
-      res.sendStatus(500);
-    }
+  if (acceptedFileTypes.find(type => type === ext)) {
+    return {file, filePath, fileName}
   } else {
-    res.sendStatus(500);
+    return null;
   }
 }
+
+const processImage = ({file, filePath, fileName}) => 
+  file.mv(filePath + fileName);
+  im.resize(fileName)
+
+const uploadFile = (req, res) => {
+  let file = req.file.img
+  validateFile(file) === null ? res.sendStatus(500) : processImage(validateFile(req))
+    res.sendStatus(200);
+}
+
+//
+// post functions
+//
 
 function newPost(post, callback) {
   let { board, thread, email, name, comment, file } = post;
@@ -83,7 +90,7 @@ function newPost(post, callback) {
 }
 
 function newThread(newThread, res) {
-  let { board, thread, subject, email, name, comment, file} = newThread;
+  let { board, thread, subject, email, name, comment, file } = newThread;
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (NULL,
@@ -93,7 +100,7 @@ function newThread(newThread, res) {
                 "${email}",
                 "${name}",
                 "${comment}",
-                "${file}");`; 
+                "${file}");`;
 
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread"`
   db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200)));
@@ -117,8 +124,8 @@ function getPosts(req, callback) {
   }
 
   db.each(sql, (err, row) => {
-      result.push(row);
-    },
+    result.push(row);
+  },
     () => callback.send(result)
   );
 }
@@ -151,23 +158,23 @@ const getRoutes = async (res) => {
 
   function getThreads(call) {
     return new Promise((resolve, reject) => {
-        db.all(call.sql, (err, rows) => {
-          resolve({ uri: call.uri, threads: rows })
-          reject(reason => console.log(reason))
-        })
+      db.all(call.sql, (err, rows) => {
+        resolve({ uri: call.uri, threads: rows })
+        reject(reason => console.log(reason))
+      })
     });
   }
 
   db.each(sql, (err, board) => {
     dbCalls.push({ uri: board.uri, sql: `SELECT * FROM posts_${board.uri} GROUP BY thread;` })
   }, () => {
-      dbCalls.forEach(call => {
-        getThreads(call).then(res => boardList.push(res))
-          .then(() => {boardList.length === dbCalls.length ? res.send(boardList) : null})
-      }
+    dbCalls.forEach(call => {
+      getThreads(call).then(res => boardList.push(res))
+        .then(() => { boardList.length === dbCalls.length ? res.send(boardList) : null })
+    }
     )
   })
-} 
+}
 
 //
 // routes
