@@ -33,9 +33,10 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
 // misc
 //
 
-const processImage = (file, filePath, fileName) => {
+const processImage = (file, filePath, fileName, callback) => {
   file.mv(filePath + fileName);
   im.resize(fileName)
+  callback();
 }
 
 const validateFile = fileName => {
@@ -61,8 +62,8 @@ const uploadFile = (req, res) => {
   let fileName = file.name;
   let filePath = path.join(__dirname, './img/');
   
-  validateFile(fileName) ? processImage(file, filePath, fileName) : res.sendStatus(500)
-    res.sendStatus(200);
+  validateFile(fileName) ? processImage(file, filePath, fileName, () => res.sendStatus(200))
+    : res.sendStatus(500)
 }
 
 //
