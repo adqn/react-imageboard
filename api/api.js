@@ -33,9 +33,12 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
 // misc
 //
 
-const validateFile = file => {
-  let fileName = file.name;
-  let filePath = path.join(__dirname, './img/');
+const processImage = (file, filePath, fileName) => {
+  file.mv(filePath + fileName);
+  im.resize(fileName)
+}
+
+const validateFile = fileName => {
   let ext = fileName.match(/[^\.]+$/)[0].toUpperCase();
   
   let acceptedFileTypes = [
@@ -47,19 +50,18 @@ const validateFile = file => {
   ]
 
   if (acceptedFileTypes.find(type => type === ext)) {
-    return {file, filePath, fileName}
+    return true;
   } else {
-    return null;
+    return false;
   }
 }
 
-const processImage = ({file, filePath, fileName}) => 
-  file.mv(filePath + fileName);
-  im.resize(fileName)
-
 const uploadFile = (req, res) => {
-  let file = req.file.img
-  validateFile(file) === null ? res.sendStatus(500) : processImage(validateFile(req))
+  let file = req.files.img;
+  let fileName = file.name;
+  let filePath = path.join(__dirname, './img/');
+  
+  validateFile(fileName) ? processImage(file, filePath, fileName) : res.sendStatus(500)
     res.sendStatus(200);
 }
 
