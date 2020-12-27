@@ -21,17 +21,14 @@ const resize = imageName => {
       .write(__dirname + '/img/' + name + 's' + ext, (err) => err ? console.log(err) : null)
   }
 
+  let size = {};
   image = gm(__dirname + '/img/' + imageName);
 
-  let size = {};
-  let sizeObj = image.size((err, value) => {
+  image.size((err, value) => {
     size.width = value.width;
     size.height = value.height;
     callback(size)
   });
-
 }
-
-// resize('143682248658.png')
 
 exports.resize = resize;
