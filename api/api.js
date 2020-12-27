@@ -29,25 +29,32 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
 //     })
 //   );
 
-
-///
-/// misc helpers
-///
-
-
 //
 // post functions
 //
 
 const uploadFile = (req, res) => {
   if (req.files) {
+    let acceptedFileTypes = [
+      "JPG",
+      "JPEG",
+      "PNG",
+      "BMP",
+      "GIF"
+    ] 
+
     let file = req.files.img
     let fileName = req.files.img.name;
     let filePath = path.join(__dirname, './img/');
+    let ext = fileName.match(/[^\.]+$/)[0].toUpperCase();
 
-    file.mv(filePath + fileName);
-    im.resize(fileName)
-    res.sendStatus(200);
+    if (acceptedFileTypes.find(type => type === ext )) {
+      file.mv(filePath + fileName);
+      im.resize(fileName)
+      res.sendStatus(200);
+    } else {
+      res.sendStatus(500);
+    }
   } else {
     res.sendStatus(500);
   }
@@ -106,10 +113,6 @@ function getPosts(req, callback) {
   }
 
   if (query === "threads") {
-    sql = `SELECT * FROM posts_${board} GROUP BY thread`;
-  }
-
-  if (query === "opPost") {
     sql = `SELECT * FROM posts_${board} GROUP BY thread`;
   }
 
@@ -182,9 +185,7 @@ app.use((req, res, next) => {
   );
   next();
 });
-app.use(fileUpload({
-  createParentPath: true
-}))
+app.use(fileUpload({ createParentPath: true }))
 app.use('/img', express.static('./api/img'));
 
 app.get("/test", (req, res) => {
