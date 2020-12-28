@@ -84,7 +84,6 @@ function newPost(post, callback) {
     fileHeight
   } = post;
   let filehash = password = ip = bump = sticky = locked = sage = null;
-
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (null,
@@ -105,19 +104,22 @@ function newPost(post, callback) {
                 "${sticky}",
                 "${locked}",
                 "${sage}");`
+  const setBump = `UPDATE posts_${board} SET bump = 1 where thread = ${thread};`
+  const updateBump = `UPDATE posts_${board} SET bump = (bump + 1) where thread = post;`
 
-
-  db.run(sql, (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      () => callback.sendStatus(200);
-    }
-  });
+  db.run(updateBump, ok => db.run(setBump, ok => db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))));
+  // db.run(sql, (err) => {
+  //   if (err) {
+  //     console.log(err);
+  //   } else {
+  //     () => callback.sendStatus(200);
+  //   }
+  // });
 }
 
 function newThread(post, res) {
   let {
+    bump,
     board,
     thread,
     subject,
@@ -129,8 +131,9 @@ function newThread(post, res) {
     fileWidth,
     fileHeight
   } = post;
-  let filehash = password = ip = bump = sticky = locked = sage = null;
+  let filehash = password = ip = sticky = locked = sage = null;
 
+  const updateBump = `UPDATE posts_${board} SET bump = (bump + 1)`
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (NULL,
@@ -151,9 +154,9 @@ function newThread(post, res) {
                 ${sticky},
                 ${locked},
                 ${sage});`
-
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread";`
-  db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200)));
+  
+  db.run(updateBump, ok => db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200))));
 }
 
 function getPosts(req, callback) {
