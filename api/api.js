@@ -29,6 +29,8 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
 //     })
 //   );
 
+// createDb();
+
 //
 // misc
 //
@@ -60,7 +62,7 @@ const uploadFile = (req, res) => {
   let file = req.files.img;
   let fileName = file.name;
   let filePath = path.join(__dirname, './img/');
-  
+
   validateFile(fileName) ? processImage(file, filePath, fileName, () => res.sendStatus(200))
     : res.sendStatus(500)
 }
@@ -70,7 +72,19 @@ const uploadFile = (req, res) => {
 //
 
 function newPost(post, callback) {
-  let { board, thread, email, name, comment, file } = post;
+  let {
+    board,
+    thread,
+    email,
+    name,
+    comment,
+    file,
+    fileSize,
+    fileWidth,
+    fileHeight
+  } = post;
+  let filehash, password, ip, bump, stcky, locked, sage = "null";
+
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (null,
@@ -80,7 +94,18 @@ function newPost(post, callback) {
                 "${email}",
                 "${name}", 
                 "${comment}",
-                "${file}");`;
+                "${file}",
+                "${fileSize}",
+                "${fileWidth}",
+                "${fileHeight}",
+                "${filehash}",
+                "${password}",
+                "${ip}",
+                "${bump}",
+                "${sticky}",
+                "${locked}",
+                "${sage}";`
+
 
   db.run(sql, (err) => {
     if (err) {
@@ -92,7 +117,19 @@ function newPost(post, callback) {
 }
 
 function newThread(newThread, res) {
-  let { board, thread, subject, email, name, comment, file } = newThread;
+  let {
+    board,
+    thread,
+    email,
+    name,
+    comment,
+    file,
+    fileSize,
+    fileWidth,
+    fileHeight
+  } = post;
+  let filehash, password, ip, bump, stcky, locked, sage = "null";
+
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (NULL,
@@ -100,9 +137,19 @@ function newThread(newThread, res) {
                 "${subject}",
                 current_timestamp,
                 "${email}",
-                "${name}",
+                "${name}", 
                 "${comment}",
-                "${file}");`;
+                "${file}",
+                "${fileSize}",
+                "${fileWidth}",
+                "${fileHeight}",
+                "${filehash}",
+                "${password}",
+                "${ip}",
+                "${bump}",
+                "${sticky}",
+                "${locked}",
+                "${sage}";`
 
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread"`
   db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200)));
@@ -125,31 +172,19 @@ function getPosts(req, callback) {
     sql = `SELECT * FROM posts_${board} GROUP BY thread`;
   }
 
-  db.each(sql, (err, row) => {
-    result.push(row);
-  },
-    () => callback.send(result)
-  );
+  db.each(sql, (err, row) => result.push(row), () => callback.send(result));
 }
 
 const getBoards = (callback) => {
   const sql = `SELECT * FROM boards;`;
   let result = [];
 
-  db.serialize(() => {
-    db.each(
-      sql,
-      (err, row) => {
-        result.push(row);
-      },
-      () => {
-        if (callback) {
-          callback.send(result);
-        } else {
-          return result;
-        }
-      }
-    );
+  db.each(sql, (err, row) => result.push(row), () => {
+    if (callback) {
+      callback.send(result);
+    } else {
+      return result;
+    }
   });
 };
 
@@ -232,5 +267,3 @@ const port = 5001;
 const server = app.listen(port, () =>
   console.log("Server listening on port " + port)
 );
-
-// createDb();
