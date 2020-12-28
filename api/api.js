@@ -13,7 +13,7 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
   if (err) {
     console.log("Unable to open database: \n" + "\t" + err.message);
   } else {
-    console.log("Boards database up");
+    console.log("Board database up");
   }
 });
 
@@ -37,7 +37,7 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
 
 const processImage = (file, filePath, fileName, callback) => {
   file.mv(filePath + fileName);
-  im.resize(fileName)
+  im.resize(fileName);
   callback();
 }
 
@@ -83,7 +83,7 @@ function newPost(post, callback) {
     fileWidth,
     fileHeight
   } = post;
-  let filehash, password, ip, bump, stcky, locked, sage = "null";
+  let filehash = password = ip = bump = sticky = locked = sage = null;
 
   const sql = `INSERT INTO posts_${board} 
                VALUES 
@@ -104,7 +104,7 @@ function newPost(post, callback) {
                 "${bump}",
                 "${sticky}",
                 "${locked}",
-                "${sage}";`
+                "${sage}");`
 
 
   db.run(sql, (err) => {
@@ -116,10 +116,11 @@ function newPost(post, callback) {
   });
 }
 
-function newThread(newThread, res) {
+function newThread(post, res) {
   let {
     board,
     thread,
+    subject,
     email,
     name,
     comment,
@@ -128,7 +129,7 @@ function newThread(newThread, res) {
     fileWidth,
     fileHeight
   } = post;
-  let filehash, password, ip, bump, stcky, locked, sage = "null";
+  let filehash = password = ip = bump = sticky = locked = sage = null;
 
   const sql = `INSERT INTO posts_${board} 
                VALUES 
@@ -140,18 +141,18 @@ function newThread(newThread, res) {
                 "${name}", 
                 "${comment}",
                 "${file}",
-                "${fileSize}",
-                "${fileWidth}",
-                "${fileHeight}",
-                "${filehash}",
-                "${password}",
-                "${ip}",
-                "${bump}",
-                "${sticky}",
-                "${locked}",
-                "${sage}";`
+                ${fileSize},
+                ${fileWidth},
+                ${fileHeight},
+                ${filehash},
+                ${password},
+                ${ip},
+                ${bump},
+                ${sticky},
+                ${locked},
+                ${sage});`
 
-  const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread"`
+  const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread";`
   db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200)));
 }
 
