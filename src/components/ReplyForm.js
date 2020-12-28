@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from 'axios';
 
 const api = (option) => "http://localhost:5001/api/" + option;
@@ -17,7 +17,18 @@ const ReplyForm = ({ index, uri, threadId }) => {
     setName("");
     setEmail("");
     setComment("");
+    setFile(null);
   };
+
+  const getDimensions = (image, callback) => {
+    window.URL = window.URL || window.webkitURL;
+    let img = new Image();
+    img.src = window.URL.createObjectURL(image);
+
+    img.onload = () => callback(img.naturalWidth, img.naturalHeight);
+
+    // img.remove();
+  }
 
   const uploadFile = (filename) => 
     new Promise((resolve, reject) => {
@@ -39,8 +50,6 @@ const ReplyForm = ({ index, uri, threadId }) => {
         if (resp.status === 200) {
           setPostStatus("Post successful!");
           clearReplyForm();
-          // setNewPost(true);
-          
         }
       })
       .catch((err) => {
@@ -59,7 +68,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
           clearReplyForm();
         }
       })
-      .catch(() => null)
+      .catch((err) => console.log(err))
   }
 
   const postReq = (body) => {
@@ -73,8 +82,6 @@ const ReplyForm = ({ index, uri, threadId }) => {
   const handleSubmit = (e) => {
     let post;
     let finalName;
-    let finalSubject = "null";
-    let newThread = "newthread";
     let finalFileName = null;
 
     name === "" ? finalName = "Anonymous" : finalName = name;
@@ -86,71 +93,69 @@ const ReplyForm = ({ index, uri, threadId }) => {
       finalFileName = epoch + ext;
     }
 
+    post = {
+      board: uri,
+      thread: threadId,
+      subject,
+      email: email,
+      name: finalName,
+      comment: comment,
+      file: finalFileName
+    }
+
     if (index) {
+      post.thread = "newthread";
+      post.bump = 1;
       setPostStatus("Submitting thread...");
 
       if (file) {
-        finalSubject = subject;
-    
-        post = {
-          board: uri,
-          subject: finalSubject,
-          thread: "newthread",
-          email: email,
-          name: finalName,
-          comment: comment,
-          file: finalFileName
-        }
+        let fileSize = file.size;
 
-        uploadFile(finalFileName)
-          .then(res => {
-            if (res.status === 200) {
-              submitThread(post);
-              setPostStatus("Post successful!")
-            } else {
-              setPostStatus("Error: upload failed.")
-            }
-          })
-
+        getDimensions(file, (fileWidth, fileHeight) => {
+          if (fileWidth < 10000 || fileHeight < 10000) {
+            let fileInfo = { fileSize, fileWidth, fileHeight };
+            uploadFile(finalFileName)
+              .then(res => {
+                if (res.status === 200) {
+                  submitThread({ ...post, ...fileInfo });
+                  setPostStatus("Post successful!")
+                } else {
+                  setPostStatus("Error: upload failed.")
+                }
+              });
+          }
+        });
       } else {
-        setPostStatus("Error: you must select an image when posting a new thread!");
+        setPostStatus("Error: you must select an image when making a new thread!");
         return;
       }
     } else {
+      post.bump = 1;
       setPostStatus("Submitting post...");
 
       if (file) {
-        post = {
-          board: uri,
-          subject: finalSubject,
-          thread: threadId,
-          email: email,
-          name: finalName,
-          comment: comment,
-          file: finalFileName
-        }
+        let fileSize = file.size;
 
-        uploadFile(finalFileName)
-          .then(res => {
-            if (res.status === 200) {
-              submitReply(post);
-              setPostStatus("Post successful!")
-            } else {
-              setPostStatus("Error: upload failed.")
-            }
-          })
+        getDimensions(file, (fileWidth, fileHeight) => {
+          if (fileWidth < 10000 || fileWidth < 10000) {
+            let fileInfo = {fileSize, fileWidth, fileHeight }
+            uploadFile(finalFileName)
+              .then(res => {
+                if (res.status === 200) {
+                  submitReply({ ...post, ...fileInfo });
+                  setPostStatus("Post successful!")
+                } else {
+                  setPostStatus("Error: upload failed.")
+                }
+              });
+          } else {
+              setPostStatus("Error: image dimensions must be less than 10000x10000.")
+          }
+        });
+
       } else {
-        post = {
-          board: uri,
-          subject: finalSubject,
-          thread: threadId,
-          email: email,
-          name: finalName,
-          comment: comment,
-          file: finalFileName
-        }
-
-        submitReply(post);
+        let f = {fileSize: null, fileWidth: null, fileHeight: null}
+        submitReply({ ...post, ...f });
       }
     }
 
