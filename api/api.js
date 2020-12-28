@@ -81,9 +81,10 @@ function newPost(post, callback) {
     file,
     fileSize,
     fileWidth,
-    fileHeight
+    fileHeight,
+    sage
   } = post;
-  let filehash = password = ip = bump = sticky = locked = sage = null;
+  let filehash = password = ip = bump = sticky = locked = null;
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (null,
@@ -107,14 +108,13 @@ function newPost(post, callback) {
   const setBump = `UPDATE posts_${board} SET bump = 1 where thread = ${thread};`
   const updateBump = `UPDATE posts_${board} SET bump = (bump + 1) where thread = post;`
 
-  db.run(updateBump, ok => db.run(setBump, ok => db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))));
-  // db.run(sql, (err) => {
-  //   if (err) {
-  //     console.log(err);
-  //   } else {
-  //     () => callback.sendStatus(200);
-  //   }
-  // });
+  if (sage) {
+    db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))
+  } else {
+    db.run(updateBump, ok =>
+      db.run(setBump, ok =>
+        db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))));
+  }
 }
 
 function newThread(post, res) {
