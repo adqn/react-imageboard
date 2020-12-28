@@ -130,7 +130,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
         return;
       }
     } else {
-      post.bump = 1;
+      email === "sage" ? post.sage = 1 : post.sage = null;
       setPostStatus("Submitting post...");
 
       if (file) {
