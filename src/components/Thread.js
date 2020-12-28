@@ -5,13 +5,7 @@ import ReplyForm from './ReplyForm';
 const Posts = ({ posts }) => (
   <div className="Post">
     {posts.map((post) => (
-      <Post
-        subject={post.subject}
-        id={post.post}
-        timestamp={post.created}
-        name={post.name}
-        comment={post.comment}
-      />
+      <Post post={post} />
     ))}
   </div>
 );
@@ -33,8 +27,8 @@ function Thread({ uri, id }) {
 
   const countdown = (timeFrom, callback) => {
     if (countdownTime === 1) {
-      callback();
       setCountdown(timeFrom);
+      callback();
     } else setCountdown(countdownTime - 1);
   };
 
@@ -48,9 +42,20 @@ function Thread({ uri, id }) {
   }, [countdownTime]);
 
   return (
-    <div className="ThreadContainer">
-      <Posts posts={posts} />
-      {isLoading ? null : countdownTime}
+    <div>
+      <div className="ThreadContainer">
+        <hr class="desktop" id="op" />
+        <div class="navLinks desktop">[<a href="../../" accesskey="a">Return</a>] [<a href="../../catalog">Catalog</a>] [<a
+          href="#bottom">Bottom</a>]</div>
+        <hr class="desktop" id="op" />
+        <Posts posts={posts} />
+        <hr class="desktop" id="op" />
+        <div className="statusBar">
+          <div className="refreshTimer">
+            {isLoading ? null : countdownTime}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
