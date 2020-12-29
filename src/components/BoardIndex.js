@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ReplyArea from "./ReplyArea";
+import Post from "./Post";
 
 const OpPost = ({ board, postInfo }) => {
-  const {
+  let {
     post,
     thread,
     subject,
@@ -11,8 +12,12 @@ const OpPost = ({ board, postInfo }) => {
     name,
     comment,
     file,
+    fileSize,
+    fileWidth,
+    fileHeight
   } = postInfo;
 
+  fileSize = Math.ceil(fileSize/1024)
   let fileThumb = null;
 
   if (file) { fileThumb = file.match(/\d+/)[0] + "s" + file.match(/\..+/)[0] }
@@ -39,7 +44,7 @@ const OpPost = ({ board, postInfo }) => {
                 <a href={"http://localhost:5001/img/" + file} target="_blank">
                   {file}
                 </a>{" "}
-              (99 KB, 1400x830)
+          ({fileSize} KB, {fileWidth + "x" + fileHeight}) <a>google yandex iqdb wait</a>
             </div>
               <a
                 class="fileThumb"
@@ -93,23 +98,66 @@ const OpPost = ({ board, postInfo }) => {
           </blockquote>
         </div>
       </div>
-      <hr class="desktop" id="op" />
     </div>
   );
 };
 
-const Catalog = ({ uri }) => {
+const BoardIndex = ({ uri }) => {
   const [threads, setThreads] = useState(null);
   const api = (option) => "http://localhost:5001/api/" + option;
 
-  const reqString = `/?query=threads&board=${uri}&thread=null&post=null`;
+  // const Posts = ({ posts }) => (
+  //   <div className="Post">
+  //     {posts.map(post => (
+  //       post.thread === threadId ? <Post post={post} /> : null
+  //     ))}
+  //   </div>
+  // );
+
+  const BumpSortedThreads = ({ uri, threads }) => {
+    const opPosts =  threads.filter(post => post.post == post.thread)
+    const sortedThreads = opPosts.sort((a, b) => a.bump - b.bump);
+    const threadPosts = threads.filter(post => post.post != post.thread)
+    const threadAndPosts = [];
+
+    let t = 1;
+    for (let thread of sortedThreads) {
+      let op = <OpPost board={uri} postInfo={thread} />;
+      threadAndPosts.push(op)
+      
+      for (let post of threadPosts) {
+        if (post.thread === thread.post) {
+          threadAndPosts.push(<Post post={post} />)     
+        }
+      }
+
+      threadAndPosts.push(<hr class="desktop" id="op" />)
+    }
+
+    return (
+      <div>
+        {/* {sortedThreads.map(thread => 
+          <OpPost board={uri} postInfo={thread} />
+          threadPosts.map(post => thread.thread === post.thread ? <Post post={post} /> : <div>what</div>)
+        )} */}
+        {threadAndPosts.map(thread => thread)}
+      </div>
+    )
+  }
+
+  // Here 'post' is the number of posts per thread to get
+  // Change this so I don't have to re-use &post for something different
+  let post = 6;
+  const reqString = `/?query=threads&board=${uri}&thread=null&post=${post}`;
 
   const getThreads = () =>
     fetch(api("getposts" + reqString))
       .then((resp) => resp.json())
       .then(resp => {
+        console.log(resp)
         setThreads(resp);
       })
+
 
   useEffect(() => {
     getThreads();
@@ -119,9 +167,9 @@ const Catalog = ({ uri }) => {
     <div>
       <ReplyArea index={true} uri={uri} id={null}  /> 
       <hr class="desktop" id="op" />
-      {threads ? threads.map((thread) => <OpPost board={uri} postInfo={thread} />) : null}
+      {threads ? <BumpSortedThreads uri={uri} threads={threads} /> : null}
     </div>
   );
 };
 
-export default Catalog;
+export default BoardIndex;
