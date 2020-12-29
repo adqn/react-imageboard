@@ -115,7 +115,6 @@ const BoardIndex = ({ uri }) => {
 
   const BumpSortedThreads = ({ uri, threads }) => {
     let bumpOrder = {};
-    let opPosts = [];
     let tempThreads = {};
     let finalThreads = [];
 
