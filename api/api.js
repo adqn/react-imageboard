@@ -162,7 +162,9 @@ function newThread(post, res) {
 function getPosts(req, callback) {
   let { query, board, thread, post } = req;
   let result = [];
+  let partialThreads = {};
   let sql;
+  let sql2 = null;
 
   if (query === "post") {
     sql = `SELECT * FROM posts_${board} WHERE post = ${post}`;
@@ -174,9 +176,31 @@ function getPosts(req, callback) {
 
   if (query === "threads") {
     sql = `SELECT * FROM posts_${board} GROUP BY thread`;
+
+    if (post != "null") {
+      // change to order by b.post 
+      // add query to retrieve thread op rows and push each row from this thing vv
+      sql2 = `SELECT * FROM posts_${board} a WHERE a.RowId IN (
+              SELECT b.RowId
+                FROM posts_${board} b
+                WHERE a.thread = b.thread
+                ORDER BY b.post DESC LIMIT ${post} 
+            ) ORDER BY thread ASC;`
+    }
   }
 
-  db.each(sql, (err, row) => result.push(row), () => callback.send(result));
+  if (sql2) {
+    db.each(sql, (err, row) => 
+      partialThreads[row.thread] = [row],
+      ok => db.each(sql2, (err, row) => {
+        if (row.post != row.thread) {
+        partialThreads[row.thread].push(row)
+        }
+      }, ok => callback.send(partialThreads)))
+  } else {
+    db.each(sql, (err, row) => result.push(row), () => callback.send(result));
+  }
+
 }
 
 const getBoards = (callback) => {
