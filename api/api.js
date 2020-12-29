@@ -178,8 +178,6 @@ function getPosts(req, callback) {
     sql = `SELECT * FROM posts_${board} GROUP BY thread`;
 
     if (post != "null") {
-      // change to order by b.post 
-      // add query to retrieve thread op rows and push each row from this thing vv
       sql2 = `SELECT * FROM posts_${board} a WHERE a.RowId IN (
               SELECT b.RowId
                 FROM posts_${board} b
@@ -190,8 +188,9 @@ function getPosts(req, callback) {
   }
 
   if (sql2) {
-    db.each(sql, (err, row) => 
-      partialThreads[row.thread] = [row],
+    db.each(sql, (err, row) => {
+      partialThreads[row.thread] = [row]
+    },
       ok => db.each(sql2, (err, row) => {
         if (row.post != row.thread) {
         partialThreads[row.thread].push(row)
@@ -200,7 +199,6 @@ function getPosts(req, callback) {
   } else {
     db.each(sql, (err, row) => result.push(row), () => callback.send(result));
   }
-
 }
 
 const getBoards = (callback) => {
