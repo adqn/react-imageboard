@@ -110,7 +110,7 @@ const PostsOmitted = ({ uri, threadId }) => {
 
   const Omitted = () => 
     <div>
-      <b>+</b> <i>{omitted} replies omitted...</i>
+      <b>+</b> <i>{omitted > 1 ? omitted + " replies omitted" : omitted + " reply omitted..."}</i>
     </div>
 
   const reqString = `/?query=omitted&board=${uri}&thread=${threadId}&post=null`;
