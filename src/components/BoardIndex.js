@@ -104,20 +104,43 @@ const OpPost = ({ board, opPost }) => {
   );
 };
 
-const BoardIndex = ({ uri }) => {
-  const [threads, setThreads] = useState(null);
+const PostsOmitted = ({ uri, threadId }) => {
+  const [omitted, setOmitted] = useState(null);
   const api = (option) => "http://localhost:5001/api/" + option;
 
-  const PostsOmitted = numPosts =>
+  const Omitted = () => 
     <div>
-      <b>+</b> <i>Some posts omitted...</i>
+      <b>+</b> <i>{omitted} replies omitted...</i>
     </div>
 
-  const BumpSortedThreads = ({ uri, threads }) => {
-    let bumpOrder = {};
-    let tempThreads = {};
-    let finalThreads = [];
+  const reqString = `/?query=omitted&board=${uri}&thread=${threadId}&post=null`;
+  
+  useEffect(() => {
+    fetch(api("getposts" + reqString))
+      .then(res => res.json())
+      .then((res) => {
+        console.log(res)
+        if (res > 6) {
+          let numOmitted = res - 6;
+          setOmitted(numOmitted)
+        }
+      })
+  }, [])
 
+  return (
+  <div>
+    {omitted ? <Omitted /> : null}
+  </div>
+  )
+}
+
+const BumpSortedThreads = ({ uri, threads }) => {
+  const [finalThreads, setFinalThreads] = useState(null);
+  let bumpOrder = {};
+  let tempThreads = {};
+  let threadArray = [];
+
+  const orderAndFormatThreads = () => {
     for (let thread in threads) {
       let threadId = thread;
       let bump = threads[thread][0].bump;
@@ -136,28 +159,38 @@ const BoardIndex = ({ uri }) => {
         let thePost;
         if (post.post === post.thread) {
           thePost =
-              <OpPost board={uri} opPost={post} />
+            <OpPost board={uri} opPost={post} />
           if (tempThreads[thread].length > 5) {
-            thePost = 
+            thePost =
               <div>
-              <OpPost board={uri} opPost={post} />
-              <PostsOmitted />
+                <OpPost board={uri} opPost={post} />
+                <PostsOmitted uri={uri} threadId={post.thread} />
               </div>
           }
         } else {
           thePost = <Post post={post} />
         }
-        finalThreads.push(thePost)
+        threadArray.push(thePost)
       }
-      finalThreads.push(<hr class="desktop" id="op" />)
+      threadArray.push(<hr class="desktop" id="op" />)
     }
 
-    return (
-      <div>
-        {finalThreads}
-      </div>
-    )
+    setFinalThreads(threadArray);
   }
+
+  useEffect(() => orderAndFormatThreads(), [])
+
+  return (
+    <div>
+      {finalThreads}
+    </div>
+  )
+}
+
+const BoardIndex = ({ uri }) => {
+  const [threads, setThreads] = useState(null);
+  const [repliesOmitted, setRepliesOmitted] = useState([]);
+  const api = (option) => "http://localhost:5001/api/" + option;
 
   // Here 'post' is the number of posts per thread to get
   // Change this so I don't have to re-use &post for something different
@@ -170,7 +203,6 @@ const BoardIndex = ({ uri }) => {
       .then(resp => {
         setThreads(resp);
       })
-
 
   useEffect(() => {
     getThreads();
