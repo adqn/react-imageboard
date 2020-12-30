@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useReducer, useCallback } from "react";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import Home from './components/Home';
 import Post from "./components/Post";
 import ReplyForm from "./components/ReplyForm";
 import Thread from "./components/Thread";
 import BoardIndex from "./components/BoardIndex";
 import "./App.css";
-import yukkuri from "./static/yukkuri.png";
 
 const api = (option) => "http://localhost:5001/api/" + option;
 
@@ -19,36 +19,13 @@ function App() {
 
   const NotFound = () => <div>404!</div>
   const DefaultLoading = () => <div className="PageStatus">{loadingString}</div>
+  const Spacer =  () => <div className="Spacer"></div>
   const BoardHeader = ({ uri, title }) =>
     <div class="boardBanner">
       <div class="boardTitle">
         /{uri}/ - {title}
       </div>
     </div>
-
-  const Home = () =>
-    <div>
-      <div className="header">
-        <span id="homename">soupchan</span>
-        <br />
-        <img src={yukkuri} />
-        <br />
-        <span id="imgtxt">
-          <i>"Take it easy!"</i>
-        </span>
-      </div>
-      <div className="Home"></div>
-      <div className="News"></div>
-      {/* {boards.map(board => {
-        <a href={`/${board.uri}`}>{` /${board.uri} `}</a> 
-      })} */}
-    </div>
-
-  // "authenticate" with api for POST/GETs
-  // token valid per session
-  const getToken = () =>
-    fetch(api("token"))
-      .then(resp => { })
     
   const getBoards = () =>
     fetch(api("getboards"))
@@ -96,6 +73,7 @@ function App() {
     if (foundId) {
       return (
         <div>
+          <Spacer />
           <BoardHeader uri={uri} title={foundBoard.title} />
           <ReplyForm index={false} uri={uri} threadId={id} />
           <Thread uri={uri} id={id} />
