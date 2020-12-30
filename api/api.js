@@ -160,11 +160,13 @@ function newThread(post, res) {
 }
 
 function getPosts(req, callback) {
-  let { query, board, thread, post } = req;
+  let { query, board, thread, post} = req;
   let result = [];
   let partialThreads = {};
   let sql;
   let sql2 = null;
+  let sql3 = null;
+  let count;
 
   if (query === "post") {
     sql = `SELECT * FROM posts_${board} WHERE post = ${post}`;
@@ -172,6 +174,10 @@ function getPosts(req, callback) {
 
   if (query === "thread") {
     sql = `SELECT * FROM posts_${board} WHERE thread = ${thread}`;
+
+    if (post != "null") {
+      sql = sql + ` LIMIT ${post}`
+    }
   }
 
   if (query === "threads") {
@@ -187,10 +193,17 @@ function getPosts(req, callback) {
     }
   }
 
-  if (sql2) {
-    db.each(sql, (err, row) => {
-      partialThreads[row.thread] = [row]
-    },
+  if (query === "omitted") {
+    // sql = `SELECT thread from posts_${board} WHERE thread=post;`
+    sql3 = `SELECT COUNT(thread) from posts_${board} WHERE thread=${thread};`
+  }
+  
+  if (sql3) {
+    db.each(sql3, (err, res) => {
+      count = res['COUNT(thread)'];
+    }, () => callback.send(count.toString()))
+  } else if (sql2) {
+    db.each(sql, (err, row) => partialThreads[row.thread] = [row],
       ok => db.each(sql2, (err, row) => {
         if (row.post != row.thread) {
         partialThreads[row.thread].push(row)
