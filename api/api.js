@@ -67,6 +67,35 @@ const uploadFile = (req, res) => {
     : res.sendStatus(500)
 }
 
+const pruneThreads = (board, callback) => {
+  let threadLimit = 100;
+  let lastThreadId = null;
+  let currentBoard;
+  let sql = `SELECT uri FROM boards;`
+  let sql2; 
+  let sql3; 
+  let sql4; 
+
+  db.each(sql, (err, row) => {
+    sql2 = `SELECT COUNT(thread) from posts_${board} WHERE thread = post`;
+
+    db.each(sql2, (err, row) => {
+      let count = row['COUNT(thread)'];
+
+      if (count > threadLimit) {
+        sql3 = `SELECT thread FROM posts_${board} WHERE thread = post ORDER BY bump ASC;`
+
+        db.each(sql3, (err, row) => {
+          lastThreadId = row.thread;
+        }, () => {
+          sql4 = `DELETE from posts_${board} WHERE thread = ${lastThreadId}`;
+          db.run(sql4)
+        })
+      }
+    })
+  }, () => callback.sendStatus(200))
+}
+
 //
 // post functions
 //
@@ -156,7 +185,11 @@ function newThread(post, res) {
                 ${sage});`
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread";`
   
-  db.run(updateBump, ok => db.run(sql, ok => db.run(sql2, ok => res.sendStatus(200))));
+  db.run(updateBump, ok =>
+    db.run(sql, ok =>
+      db.run(sql2, ok => pruneThreads(board, res))
+    )
+  );
 }
 
 function getPosts(req, callback) {
@@ -199,8 +232,8 @@ function getPosts(req, callback) {
   }
   
   if (sql3) {
-    db.each(sql3, (err, res) => {
-      count = res['COUNT(thread)'];
+    db.each(sql3, (err, row) => {
+      count = row['COUNT(thread)'];
     }, () => callback.send(count.toString()))
   } else if (sql2) {
     db.each(sql, (err, row) => partialThreads[row.thread] = [row],
