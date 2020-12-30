@@ -276,9 +276,22 @@ app.get("/test", (req, res) => {
   fs.createReadStream(__dirname + "/test.html").pipe(res);
 });
 
+app.post("/api/news/newpost", (req, res) => {
+  var post = req.body;
+  var sql = `INSERT INTO news VALUES (
+          NULL,
+          "${post.subject}",
+          "${post.author}",
+          "${post.post}",
+          CURRENT_TIMESTAMP
+        );`
+        
+  db.run(sql, ok => res.sendStatus(200))
+});
+
 app.post("/api/uploadfile", (req, res) => {
   uploadFile(req, res);
-})
+});
 
 app.post("/api/newthread", (req, res) => {
   newThread(req.body, res);
@@ -293,6 +306,13 @@ app.get("/api/getposts", (req, res) => {
   const query = url.parse(req.url, true).query;
   getPosts(query, res);
 });
+
+app.get("/api/news/getposts", (req, res) => {
+  var posts = [];
+  var sql = `SELECT * FROM news ORDER BY postId DESC;`
+
+  db.each(sql, (err, row) => posts.push(row), () => res.send(posts));
+})
 
 app.get("/api/getboards", (req, res) => {
   getBoards(res);
