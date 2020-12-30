@@ -106,16 +106,24 @@ const OpPost = ({ board, opPost }) => {
 
 const PostsOmitted = ({ uri, threadId }) => {
   const [omitted, setOmitted] = useState(null);
+  const [expanded, setExpanded] = useState(false);
+  const [expandedPosts, setExpandedPosts] = useState(null);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
   const api = (option) => "http://localhost:5001/api/" + option;
 
-  const Omitted = () => 
-    <div>
-      <b>+</b> <i>{omitted > 1 ? omitted + " replies omitted" : omitted + " reply omitted..."}</i>
+  const OmittedText = () =>
+    <div class="textOmitted">
+      {" "}
+      <i>{omitted > 1 ? omitted + " replies omitted" : omitted + " reply omitted..."}</i>
     </div>
 
-  const reqString = `/?query=omitted&board=${uri}&thread=${threadId}&post=null`;
-  
-  useEffect(() => {
+
+  const ExpandedPosts = () => 
+    <div>
+      {expandedPosts ? expandedPosts.map(post => <Post post={post} />) : null}
+    </div>
+
+  const getReplyCount = () =>
     fetch(api("getposts" + reqString))
       .then(res => res.json())
       .then((res) => {
@@ -125,6 +133,37 @@ const PostsOmitted = ({ uri, threadId }) => {
           setOmitted(numOmitted)
         }
       })
+
+  const expandHandler = e => {
+    if (!expanded) {
+      if (!assetsLoaded) {
+        const reqString = `/?query=thread&board=${uri}&thread=${threadId}&post=${omitted + 1}`;
+
+        fetch(api("getposts" + reqString))
+          .then(resp => resp.json())
+          .then(resp => setExpandedPosts(resp.slice(1)))
+          .then(resp => setExpanded(true))
+          .then(resp => setAssetsLoaded(true))
+      } else {setExpanded(true)}
+    } else {
+      setExpanded(false)
+    }
+    e.preventDefault();
+  }
+
+  const Omitted = () => 
+    <div id={threadId}>
+      <a href="" onClick={e => expandHandler(e)}>
+        <b class="button replyExpand">{expanded ? "-" : "+"}</b>
+      </a>
+      {expanded ? null : <OmittedText />}
+      {expanded ? <ExpandedPosts /> : null}
+    </div>
+
+  const reqString = `/?query=omitted&board=${uri}&thread=${threadId}&post=null`;
+  
+  useEffect(() => {
+    getReplyCount();
   }, [])
 
   return (
@@ -140,6 +179,7 @@ const BumpSortedThreads = ({ uri, threads }) => {
   let tempThreads = {};
   let threadArray = [];
 
+  // lazy.....
   const orderAndFormatThreads = () => {
     for (let thread in threads) {
       let threadId = thread;
