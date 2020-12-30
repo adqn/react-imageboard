@@ -6,7 +6,17 @@ CREATE TABLE IF NOT EXISTS posts_b (
     email TEXT DEFAULT NULL,
     name TEXT,
     comment TEXT,
-    file TEXT DEFAULT NULL
+    file TEXT DEFAULT NULL,
+    fileSize TEXT DEFAULT NULL,
+    fileWidth INTEGER DEFAULT NULL,
+    fileHeight INTEGER DEFAULT NULL,
+    fileHash TEXT DEFAULT NULL,
+    password TEXT DEFAULT NULL,
+    ip TEXT DEFAULT NULL, 
+    bump INTEGER DEFAULT NULL,
+    sticky INTEGER DEFAULT NULL,
+    locked INTEGER DEFAULT NULL,
+    sage INTEGER DEFAULT NULL 
 );
 
 CREATE TABLE IF NOT EXISTS posts_know ( 
@@ -17,7 +27,17 @@ CREATE TABLE IF NOT EXISTS posts_know (
     email TEXT DEFAULT NULL,
     name TEXT,
     comment TEXT,
-    file TEXT DEFAULT NULL
+    file TEXT DEFAULT NULL,
+    fileSize TEXT DEFAULT NULL,
+    fileWidth INTEGER DEFAULT NULL,
+    fileHeight INTEGER DEFAULT NULL,
+    fileHash TEXT DEFAULT NULL,
+    password TEXT DEFAULT NULL,
+    ip TEXT DEFAULT NULL, 
+    bump INTEGER DEFAULT NULL,
+    sticky INTEGER DEFAULT NULL,
+    locked INTEGER DEFAULT NULL,
+    sage INTEGER DEFAULT NULL 
 );
 
 CREATE TABLE IF NOT EXISTS boards (
@@ -25,9 +45,9 @@ CREATE TABLE IF NOT EXISTS boards (
     title TEXT NOT NULL,
     subtitle TEXT DEFAULT NULL
 );
--- 
--- INSERT INTO boards VALUES
--- ('b', 'Random', NULL);
 
--- INSERT INTO boards VALUES
--- ('know', 'Knowledge and Information', NULL);
+INSERT INTO boards VALUES
+('b', 'Random', NULL);
+
+INSERT INTO boards VALUES
+('know', 'Knowledge and Information', NULL);-- 
