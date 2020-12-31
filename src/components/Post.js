@@ -4,13 +4,22 @@ import React from 'react';
 const quote = id =>
   'javascript:quote(' + id + ');'
 
+const linkEmail = (email, name) => 
+  <a href={"mailto: " + email}>{name}</a>
+
+const regs = {
+  quote: /^>[^>].+/,
+  quoteLink: />>\d+/
+}
+
 const PostInfo = ({ post }) =>
-  <div class="postInfo desktop" id={"pi" + post.post}>
+  <div class="postInfo desktop" id={post.post}>
     <input type="checkbox" name={post.post} value="delete" />
     {" "}
     <span class="subject">{post.subject}</span>{" "}
     <span class="nameBlock">
-      <span class="name">{" "}{post.name} </span>
+      <span class="name">
+        {" "}{post.email === "" ? post.name : linkEmail(post.email, post.name)}</span>
     </span>
 
     <span class="dateTime" data-utc="">
@@ -23,10 +32,49 @@ const PostInfo = ({ post }) =>
     </span>
   </div>
 
+const formatComment = ( threadId, comment ) => {
+  let lines = comment.split("\n");
+  
+  for (let i in lines) {
+    if (lines[i].match(regs.quote)) {
+      let newLine = lines => <span class="quote">{lines}</span>
+      i == 0 ? lines[i] = newLine(lines[i] + "\n") : lines[i] = newLine("\n" + lines[i] + "\n")
+    }
+
+    else if (lines[i].match(regs.quoteLink)) {
+      let replyQuote = lines[i].match(regs.quoteLink)[0];
+      let postLinked = replyQuote.slice(2);
+      let surrounding = lines[i].split(regs.quoteLink);
+      let newLine =
+        <div>
+          {surrounding[0]}
+          <a href={"#p" + postLinked} class="quotelink">{replyQuote}</a>
+          {surrounding[1]}
+        </div>
+
+      lines[i] = newLine;
+    }
+  }
+
+  return lines;
+}
+
 const Post = ({ post }) => {
-  let { thread, subject, name, created, comment, file } = post;
+  let {
+    thread,
+    subject,
+    name,
+    created,
+    comment,
+    file,
+    fileSize,
+    fileWidth,
+    fileHeight
+  } = post;
+  let commentFormatted = formatComment(thread, comment);
   let id = post.post;
   let fileThumb = null;
+  fileSize = Math.ceil(fileSize/1024)
 
   if (file != null && file != "null") { fileThumb = file.match(/\d+/)[0] + "s" + file.match(/\..+/)[0] }
 
@@ -36,17 +84,15 @@ const Post = ({ post }) => {
         {id != thread ? ">>" : null}
       </div>
       <div id={"p" + id} class={id == thread ? "post op" : "post reply"}>
-
         {id != thread ? <PostInfo post={post} /> : null}
-
         {file != "null" && file != null ?
-          <div class="file" id="f23305178">
-            <div class="fileText" id="fT23305178">
+          <div class="file" id="">
+            <div class="fileText" id="">
               File:{" "}
               <a href={"http://localhost:5001/img/" + file} target="_blank">
                 {file}
               </a>{" "}
-          (99 KB, 1400x830) <a>google yandex iqdb wait</a>
+          ({fileSize} KB, {fileWidth + "x" + fileHeight}) <a>google yandex iqdb wait</a>
             </div>
             <a
               class="fileThumb"
@@ -55,13 +101,10 @@ const Post = ({ post }) => {
             >
               <img
                 src={"http://localhost:5001/img/" + fileThumb}
-                alt="99 KB"
-                data-md5="o8zbjchriU4F2ss1izSoDA=="
+                alt={fileSize}
+                data-md5=""
                 style={id === thread ? null : { height: "148px", width: "150px" }}
               />
-              <div data-tip data-tip-cb="mShowFull" class="mFileInfo mobile">
-                99 KB JPG
-          </div>
             </a>
           </div>
           : null}
@@ -69,7 +112,7 @@ const Post = ({ post }) => {
         {id === thread ? <PostInfo post={post} /> : null}
 
         <blockquote class="postMessage" id={id}>
-          {comment}
+          {commentFormatted}
         </blockquote>
       </div>
     </div>
