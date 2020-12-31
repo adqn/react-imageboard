@@ -1,16 +1,12 @@
 import { text } from 'body-parser';
 import React from 'react';
+import { formatComment } from '../helpers/postHelpers.js';
 
 const quote = id =>
   'javascript:quote(' + id + ');'
 
 const linkEmail = (email, name) => 
   <a href={"mailto: " + email}>{name}</a>
-
-const regs = {
-  quote: /^>[^>].+/,
-  quoteLink: />>\d+/
-}
 
 const PostInfo = ({ post }) =>
   <div class="postInfo desktop" id={post.post}>
@@ -31,35 +27,6 @@ const PostInfo = ({ post }) =>
       <a href={quote(post.post)} title="Reply to this post"></a>
     </span>
   </div>
-
-const formatComment = ( threadId, comment ) => {
-  let lines = comment.split("\n");
-  
-  for (let i in lines) {
-    if (lines[i].match(regs.quote)) {
-      lines[i] = <span class="quote">{lines[i] + "\n"}</span>
-      // i == 0 ? lines[i] = newLine(lines[i] + "\n") :
-    }
-
-    else if (lines[i].match(regs.quoteLink)) {
-      let replyQuote = lines[i].match(regs.quoteLink)[0];
-      let postLinked = replyQuote.slice(2);
-      let surrounding = lines[i].split(regs.quoteLink);
-      let newLine =
-        <div>
-          {surrounding[0]}
-          <a href={"#p" + postLinked} class="quotelink">{replyQuote}</a>
-          {surrounding[1] + "\n"}
-        </div>
-
-      lines[i] = newLine;
-    } else {
-      lines[i] = lines[i] + "\n"
-    }
-  }
-
-  return lines;
-}
 
 const Post = ({ post }) => {
   let {
