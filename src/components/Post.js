@@ -11,11 +11,10 @@ const linkEmail = (email, name) =>
 const PostInfo = ({ post }) =>
   <div class="postInfo desktop" id={post.post}>
     <input type="checkbox" name={post.post} value="delete" />
-    {" "}
     <span class="subject">{post.subject}</span>{" "}
     <span class="nameBlock">
       <span class="name">
-        {" "}{post.email === "" ? post.name : linkEmail(post.email, post.name)}</span>
+      {post.email === "" ? post.name : linkEmail(post.email, post.name)}</span>
     </span>
 
     <span class="dateTime" data-utc="">
@@ -31,21 +30,30 @@ const PostInfo = ({ post }) =>
 const Post = ({ post }) => {
   let {
     thread,
-    subject,
-    name,
-    created,
     comment,
     file,
     fileSize,
     fileWidth,
     fileHeight
   } = post;
-  let commentFormatted = formatComment(thread, comment);
   let id = post.post;
   let fileThumb = null;
-  fileSize = Math.ceil(fileSize/1024)
+  let thumb_w;
+  let thumb_h;
+  let ratio;
+  let commentFormatted = formatComment(thread, comment);
 
-  if (file != null && file != "null") { fileThumb = file.match(/\d+/)[0] + "s" + file.match(/\..+/)[0] }
+  fileSize = Math.ceil(fileSize / 1024);
+
+  if (file != null && file != "null") {
+    fileThumb = file.match(/\d+/)[0] + "s" + file.match(/\..+/)[0];
+
+    if (id != thread) {
+      ratio = (fileWidth > fileHeight ? 125 / fileWidth : 125 / fileHeight);
+      thumb_w = fileWidth * ratio;
+      thumb_h = fileHeight * ratio;
+    }
+  }
 
   return (
     <div class={"postContainer" + (id === thread ? "opContainer" : "replyContainer")} id={id}>
@@ -60,8 +68,17 @@ const Post = ({ post }) => {
               File:{" "}
               <a href={"http://localhost:5001/img/" + file} target="_blank">
                 {file}
-              </a>{" "}
-          ({fileSize} KB, {fileWidth + "x" + fileHeight}) <a>google yandex iqdb wait</a>
+              </a>{" "}                                      
+          ({fileSize} KB, {fileWidth + "x" + fileHeight})
+          <div class="post spacer"></div>
+          {/* {" "}
+          <a>google</a> 
+          {" "}
+          <a>yandex</a> 
+          {" "}
+          <a>iqdb</a>
+          {" "}
+          <a>wait</a> */}
             </div>
             <a
               class="fileThumb"
@@ -72,7 +89,7 @@ const Post = ({ post }) => {
                 src={"http://localhost:5001/img/" + fileThumb}
                 alt={fileSize}
                 data-md5=""
-                style={id === thread ? null : { height: "148px", width: "150px" }}
+                style={id === thread ? null : { height: thumb_h, width: thumb_w }}
               />
             </a>
           </div>
