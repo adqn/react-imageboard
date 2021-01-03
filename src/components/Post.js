@@ -1,5 +1,5 @@
 import { text } from 'body-parser';
-import React from 'react';
+import React, {useState} from 'react';
 import { formatComment } from '../helpers/postHelpers.js';
 
 const quote = id =>
@@ -8,10 +8,10 @@ const quote = id =>
 const linkEmail = (email, name) => 
   <a href={"mailto: " + email}>{name}</a>
 
-const PostInfo = ({ post }) =>
-  <div class="postInfo desktop" id={post.post}>
+const PostInfo = ({uri = null, post }) =>
+  <div class="postInfo" id={post.post}>
     <input type="checkbox" name={post.post} value="delete" />
-    <span class="subject">{post.subject}</span>{" "}
+    <span class="subject">{post.subject ? " " + post.subject: null}</span>{" "}
     <span class="nameBlock">
       <span class="name">
       {post.email === "" ? post.name : linkEmail(post.email, post.name)}</span>
@@ -21,27 +21,48 @@ const PostInfo = ({ post }) =>
       {" "}{post.created}
     </span>
 
-    <span class="postNum desktop">
+    <span class="postNum">
       <a href={'#p' + post.post} title="Link to this post"> No. {post.post + " "}</a>
       <a href={quote(post.post)} title="Reply to this post"></a>
     </span>
+    {uri && post.post === post.thread ?
+      <span>
+        &nbsp;
+        [
+        <a
+          href={"/" + uri + "/thread/" + post.thread + "/"}
+          class="replylink"
+        >
+          Reply
+        </a>
+        ]
+      </span>
+      : null}
   </div>
 
-const Post = ({ post }) => {
+const Post = ({ uri = null, post }) => {
+  const [imageExpanded, setImageExpanded] = useState(false);
+
+  const handleImageClick = e => {
+    setImageExpanded(!imageExpanded);
+    e.preventDefault();
+  }
+
   let {
     thread,
     comment,
     file,
+    fileOrig,
     fileSize,
     fileWidth,
     fileHeight
   } = post;
-  let id = post.post;
+  const id = post.post;
   let fileThumb = null;
   let thumb_w;
   let thumb_h;
   let ratio;
-  let commentFormatted = formatComment(thread, comment);
+  let commentFormatted = formatComment(comment);
 
   fileSize = Math.ceil(fileSize / 1024);
 
@@ -67,18 +88,10 @@ const Post = ({ post }) => {
             <div class="fileText" id="">
               File:{" "}
               <a href={"http://localhost:5001/img/" + file} target="_blank">
-                {file}
+                {fileOrig}
               </a>{" "}                                      
           ({fileSize} KB, {fileWidth + "x" + fileHeight})
           <div class="post spacer"></div>
-          {/* {" "}
-          <a>google</a> 
-          {" "}
-          <a>yandex</a> 
-          {" "}
-          <a>iqdb</a>
-          {" "}
-          <a>wait</a> */}
             </div>
             <a
               class="fileThumb"
@@ -86,16 +99,19 @@ const Post = ({ post }) => {
               target="_blank"
             >
               <img
-                src={"http://localhost:5001/img/" + fileThumb}
+                src={imageExpanded ?
+                  "http://localhost:5001/img/" + file :
+                  "http://localhost:5001/img/" + fileThumb}
                 alt={fileSize}
                 data-md5=""
                 style={id === thread ? null : { height: thumb_h, width: thumb_w }}
+                onClick={e => handleImageClick(e)}
               />
             </a>
           </div>
           : null}
 
-        {id === thread ? <PostInfo post={post} /> : null}
+        {id === thread ? <PostInfo uri={uri} post={post} /> : null}
 
         <blockquote class="postMessage" id={id}>
           {commentFormatted}
