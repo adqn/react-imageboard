@@ -9,7 +9,9 @@ const formidable = require("formidable");
 
 const im = require('./images');
 
-let db = new sqlite3.Database("./api/db/db.db", (err) => {
+const router = express.Router();
+
+let db = new sqlite3.Database("./api/db/boards.db", (err) => {
   if (err) {
     console.log("Unable to open database: \n" + "\t" + err.message);
   } else {
@@ -19,7 +21,7 @@ let db = new sqlite3.Database("./api/db/db.db", (err) => {
 
 // const createDb = () =>
 //   new Promise((resolve, reject) =>
-//     fs.readFile(path.join(__dirname, "./schema.sql"), (err, data) => {
+//     fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
 //       if (err) return reject(err);
 
 //       db.exec(data.toString(), (err) => {
@@ -70,11 +72,9 @@ const uploadFile = (req, res) => {
 const pruneThreads = (board, callback) => {
   let threadLimit = 100;
   let lastThreadId = null;
-  let currentBoard;
+  let threadImages = [];
   let sql = `SELECT uri FROM boards;`
-  let sql2; 
-  let sql3; 
-  let sql4; 
+  let sql2, sql3, sql4, sql5;
 
   db.each(sql, (err, row) => {
     sql2 = `SELECT COUNT(thread) from posts_${board} WHERE thread = post`;
@@ -88,8 +88,13 @@ const pruneThreads = (board, callback) => {
         db.each(sql3, (err, row) => {
           lastThreadId = row.thread;
         }, () => {
-          sql4 = `DELETE from posts_${board} WHERE thread = ${lastThreadId}`;
-          db.run(sql4)
+          sql4 = `SELECT file FROM posts_${board} WHERE thread = ${lastThreadId};`
+          sql5 = `DELETE FROM posts_${board} WHERE thread = ${lastThreadId};`
+
+            db.each(sql4, (err, row) =>
+              // threadImages.push(row.file),
+              console.log(row),
+              db.run(sql5, ok => null))
         })
       }
     })
@@ -108,6 +113,7 @@ function newPost(post, callback) {
     name,
     comment,
     file,
+    fileOrig,
     fileSize,
     fileWidth,
     fileHeight,
@@ -124,6 +130,7 @@ function newPost(post, callback) {
                 "${name}", 
                 "${comment}",
                 "${file}",
+                "${fileOrig}",
                 "${fileSize}",
                 "${fileWidth}",
                 "${fileHeight}",
@@ -142,7 +149,7 @@ function newPost(post, callback) {
   } else {
     db.run(updateBump, ok =>
       db.run(setBump, ok =>
-        db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))));
+        db.run(sql, (ok, err) => err ? console.log(err) : () => callback.sendStatus(200))));
   }
 }
 
@@ -156,6 +163,7 @@ function newThread(post, res) {
     name,
     comment,
     file,
+    fileOrig,
     fileSize,
     fileWidth,
     fileHeight
@@ -173,6 +181,7 @@ function newThread(post, res) {
                 "${name}", 
                 "${comment}",
                 "${file}",
+                "${fileOrig}",
                 ${fileSize},
                 ${fileWidth},
                 ${fileHeight},
@@ -226,16 +235,23 @@ function getPosts(req, callback) {
     }
   }
 
+  if (query === "catalog") {
+    sql = `SELECT * FROM posts_${board} GROUP BY thread ORDER BY bump;`
+  }
+
   if (query === "omitted") {
     // sql = `SELECT thread from posts_${board} WHERE thread=post;`
     sql3 = `SELECT COUNT(thread) from posts_${board} WHERE thread=${thread};`
   }
   
+  // fix this
   if (sql3) {
     db.each(sql3, (err, row) => {
       count = row['COUNT(thread)'];
     }, () => callback.send(count.toString()))
-  } else if (sql2) {
+  }
+  
+  if (sql2) {
     db.each(sql, (err, row) => partialThreads[row.thread] = [row],
       ok => db.each(sql2, (err, row) => {
         if (row.post != row.thread) {
@@ -245,6 +261,36 @@ function getPosts(req, callback) {
   } else {
     db.each(sql, (err, row) => result.push(row), () => callback.send(result));
   }
+}
+
+const getThreadStats = (board, callback) => {
+  const threads = `SELECT thread FROM posts_${board} GROUP BY thread;`
+  let threadStats = [];
+  let postCount;
+  let imageCount;
+  let threadCount = 0;
+
+  db.each(threads, (err, row) => {
+    threadCount += 1;
+    let currentThread = { posts: 0, images: 0 };
+    postCount = `SELECT COUNT(post) from posts_${board} WHERE thread = ${row.thread};`
+    imageCount = `SELECT COUNT(file) from posts_${board} WHERE thread = ${row.thread};`
+
+    db.each(postCount, (err, row) => {
+      let posts = row['COUNT(post)'];
+      currentThread.posts = posts;
+
+      db.each(imageCount, (err, row) => {
+        let images = row['COUNT(file)'];
+        currentThread.images = images;
+      }, () => {
+          threadStats.push(currentThread);
+          if (threadCount === threadStats.length) {
+            callback.send(threadStats)
+          }
+      })
+    })
+  })
 }
 
 const getBoards = (callback) => {
@@ -289,27 +335,7 @@ const getRoutes = async (res) => {
 // routes
 //
 
-const app = express();
-
-app.use(express.urlencoded());
-app.use(express.json());
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
-app.use(fileUpload({ createParentPath: true }))
-app.use('/img', express.static('./api/img'));
-
-app.get("/test", (req, res) => {
-  res.writeHead(200, { "content-type": "text/html" });
-  fs.createReadStream(__dirname + "/test.html").pipe(res);
-});
-
-app.post("/api/news/newpost", (req, res) => {
+router.post("/news/newpost", (req, res) => {
   var post = req.body;
   var sql = `INSERT INTO news VALUES (
           NULL,
@@ -322,40 +348,43 @@ app.post("/api/news/newpost", (req, res) => {
   db.run(sql, ok => res.sendStatus(200))
 });
 
-app.post("/api/uploadfile", (req, res) => {
+router.post("/uploadfile", (req, res) => {
   uploadFile(req, res);
 });
 
-app.post("/api/newthread", (req, res) => {
+router.post("/newthread", (req, res) => {
   newThread(req.body, res);
 });
 
-app.post("/api/newpost", (req, res) => {
+router.post("/newpost", (req, res) => {
   newPost(req.body);
   res.sendStatus(200);
 });
 
-app.get("/api/getposts", (req, res) => {
+router.get("/getposts", (req, res) => {
   const query = url.parse(req.url, true).query;
   getPosts(query, res);
 });
 
-app.get("/api/news/getposts", (req, res) => {
+router.get("/news/getposts", (req, res) => {
   var posts = [];
   var sql = `SELECT * FROM news ORDER BY postId DESC;`
 
   db.each(sql, (err, row) => posts.push(row), () => res.send(posts));
 })
 
-app.get("/api/getboards", (req, res) => {
+router.get("/getboards", (req, res) => {
   getBoards(res);
 });
 
-app.get("/api/routes", (req, res) => {
+router.get("/getthreadstats", (req, res) => {
+  const query = url.parse(req.url, true).query;
+  const board = query.board;
+  getThreadStats(board, res);
+})
+
+router.get("/routes", (req, res) => {
   getRoutes(res);
 });
 
-const port = 5001;
-const server = app.listen(port, () =>
-  console.log("Server listening on port " + port)
-);
+module.exports = router;
