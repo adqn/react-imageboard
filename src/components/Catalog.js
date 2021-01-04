@@ -11,6 +11,22 @@ const getThumb = fileName => {
   return name + "s" + ext
 }
 
+const mapStatsToThreads = (threads, threadStats) => {
+  let mappedThreads = [];
+
+  for (let thread of threads) {
+    for (let stats of threadStats) {
+      if (stats.thread === thread.thread) {
+        thread.posts = stats.posts;
+        thread.images = stats.images;
+        mappedThreads.push(thread);
+      }
+    }
+  }
+
+  return mappedThreads;
+}
+
 const OpPost = ({ post }) => {
   let {
     thread,
@@ -18,6 +34,8 @@ const OpPost = ({ post }) => {
     file,
     fileWidth,
     fileHeight,
+    posts,
+    images
   } = post;
   let thumb_h;
   let thumb_w;
@@ -39,7 +57,7 @@ const OpPost = ({ post }) => {
         <img src={"http://localhost:5001/img/" + getThumb(file)}
           style={{width: thumb_w, height: thumb_h}}/>
       </a>
-        <span class="catalog threadInfo">471 / 3 / 6</span>
+        <span class="catalog threadInfo">P: {posts} / I: {images} / 0</span>
       <span class="catalog threadSubject">{subject}</span>
       <div class="postMessage">
       {formatComment(post.comment)}
@@ -49,16 +67,28 @@ const OpPost = ({ post }) => {
 }
 
 const Catalog = ({uri}) => {
-  const [threads, setThreads] = useState(null);
+  const [mappedThreads, setMappedThreads] = useState(null);
 
   const getThreads = () => {
-    let threadReq = `/?query=catalog&board=${uri}&thread=null&post=null`
+    let threadReq = `/?query=catalog&board=${uri}&thread=null&post=null`;
     fetch(api("getposts") + threadReq)
       .then(resp => resp.json())
-      .then(resp => setThreads(resp))
+      .then(resp => getThreadStats(resp))
   }
 
-  useEffect(() => getThreads(), [])
+  const getThreadStats = (threads) => {
+    let threadStatsReq = `/?board=${uri}`;
+    fetch(api("getthreadstats") + threadStatsReq)
+      .then(resp => resp.json())
+      .then(resp => {
+        let mappedThreads = mapStatsToThreads(threads, resp);
+        setMappedThreads(mappedThreads);
+      })
+  }
+
+  useEffect(() => {
+    getThreads();
+  }, [])
 
   return (
     <div>
@@ -68,7 +98,7 @@ const Catalog = ({uri}) => {
         onClick={() => getThreads()}>Update</a>]</div>
       <hr />
       <div class="catalog container">
-        {threads ? threads.map(post => <OpPost post={post} />) : null}
+        {mappedThreads ? mappedThreads.map(post => <OpPost post={post} />) : null}
       </div>
     </div>
   )
