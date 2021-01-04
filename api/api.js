@@ -271,24 +271,24 @@ const getThreadStats = (board, callback) => {
   let threadCount = 0;
 
   db.each(threads, (err, row) => {
-    threadCount += 1;
-    let currentThread = { posts: 0, images: 0 };
+    let currentThread = { thread: row.thread, posts: 0, images: 0 };
     postCount = `SELECT COUNT(post) from posts_${board} WHERE thread = ${row.thread};`
-    imageCount = `SELECT COUNT(file) from posts_${board} WHERE thread = ${row.thread};`
+    imageCount = `SELECT COUNT(file) from posts_${board} WHERE thread = ${row.thread} and file != "null";`
+    threadCount += 1;
 
     db.each(postCount, (err, row) => {
       let posts = row['COUNT(post)'];
       currentThread.posts = posts;
+    })
 
-      db.each(imageCount, (err, row) => {
-        let images = row['COUNT(file)'];
-        currentThread.images = images;
-      }, () => {
-          threadStats.push(currentThread);
-          if (threadCount === threadStats.length) {
-            callback.send(threadStats)
-          }
-      })
+    db.each(imageCount, (err, row) => {
+      let images = row['COUNT(file)'];
+      currentThread.images = images;
+      threadStats.push(currentThread)
+
+      if (threadCount === threadStats.length) {
+        callback.send(threadStats)
+      }
     })
   })
 }
