@@ -103,7 +103,7 @@ const BumpSortedThreads = ({ uri, threads }) => {
           if (tempThreads[thread].length > 5) {
             thePost =
               <div>
-                <Post post={post} />
+                <Post post={post} uri={uri} />
                 <PostsOmitted uri={uri} threadId={post.thread} />
               </div>
           }
