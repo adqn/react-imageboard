@@ -71,34 +71,32 @@ const uploadFile = (req, res) => {
 
 const pruneThreads = (board, callback) => {
   let threadLimit = 100;
-  let lastThreadId = null;
-  let threadImages = [];
-  let sql = `SELECT uri FROM boards;`
-  let sql2, sql3, sql4, sql5;
+  let getCount = `SELECT COUNT(thread) from posts_${board} WHERE thread = post`;
+  let getLastThread = `SELECT thread FROM posts_${board} GROUP BY thread ORDER BY bump DESC LIMIT 1;`
 
-  db.each(sql, (err, row) => {
-    sql2 = `SELECT COUNT(thread) from posts_${board} WHERE thread = post`;
+  db.each(getCount, (err, row) => {
+    let count = row['COUNT(thread)'];
 
-    db.each(sql2, (err, row) => {
-      let count = row['COUNT(thread)'];
+    if (count > threadLimit) {
+      db.each(getLastThread, (err, row) => {
+        let getFile = `SELECT file FROM posts_${board} WHERE thread = ${row.thread};`
+        let deleteThread = `DELETE FROM posts_${board} WHERE thread = ${row.thread};`
+        
+        db.each(getFile, (err, row) => {
+          let name = row.file.match(/\d+/)[0]
+          let ext = row.file.match(/\..+/)[0]
+          let fileThumb = name + "s" + ext;
 
-      if (count > threadLimit) {
-        sql3 = `SELECT thread FROM posts_${board} WHERE thread = post ORDER BY bump ASC;`
-
-        db.each(sql3, (err, row) => {
-          lastThreadId = row.thread;
-        }, () => {
-          sql4 = `SELECT file FROM posts_${board} WHERE thread = ${lastThreadId};`
-          sql5 = `DELETE FROM posts_${board} WHERE thread = ${lastThreadId};`
-
-            db.each(sql4, (err, row) =>
-              // threadImages.push(row.file),
-              console.log(row),
-              db.run(sql5, ok => null))
-        })
-      }
-    })
-  }, () => callback.sendStatus(200))
+          try {
+            fs.unlinkSync(__dirname + "/img/" + row.file);
+            fs.unlinkSync(__dirname + "/img/" + fileThumb);
+          } catch (err) {
+            console.log(err);
+          }
+        }, () => db.run(deleteThread))
+      })
+    }
+  })
 }
 
 //
@@ -249,9 +247,7 @@ function getPosts(req, callback) {
     db.each(sql3, (err, row) => {
       count = row['COUNT(thread)'];
     }, () => callback.send(count.toString()))
-  }
-  
-  if (sql2) {
+  } else if (sql2) {
     db.each(sql, (err, row) => partialThreads[row.thread] = [row],
       ok => db.each(sql2, (err, row) => {
         if (row.post != row.thread) {
@@ -276,12 +272,12 @@ const getThreadStats = (board, callback) => {
     imageCount = `SELECT COUNT(file) from posts_${board} WHERE thread = ${row.thread} and file != "null";`
     threadCount += 1;
 
-    db.each(postCount, (err, row) => {
+    db.get(postCount, (err, row) => {
       let posts = row['COUNT(post)'];
       currentThread.posts = posts;
     })
 
-    db.each(imageCount, (err, row) => {
+    db.get(imageCount, (err, row) => {
       let images = row['COUNT(file)'];
       currentThread.images = images;
       threadStats.push(currentThread)
@@ -326,8 +322,7 @@ const getRoutes = async (res) => {
     dbCalls.forEach(call => {
       getThreads(call).then(res => boardList.push(res))
         .then(() => { boardList.length === dbCalls.length ? res.send(boardList) : null })
-    }
-    )
+    })
   })
 }
 
