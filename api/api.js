@@ -36,7 +36,7 @@ let db = new sqlite3.Database("./api/db/boards.db", (err) => {
 //
 // misc
 //
-const deleteImages = file => {
+const deleteImage = file => {
   let name = file.match(/\d+/)[0]
   let ext = file.match(/\..+/)[0]
   let fileThumb = name + "s" + ext;
@@ -95,10 +95,25 @@ const pruneThreads = (board, callback) => {
         let deleteThread = `DELETE FROM posts_${board} WHERE thread = ${row.thread};`
         
         db.each(getFile, (err, row) => {
-          deleteImages(row.file);
+          deleteImage(row.file);
         }, () => db.run(deleteThread))
       })
     }
+  })
+}
+
+const deletePost = (board, id) => {
+  const deletePost = `DELETE FROM posts_${board} WHERE post = ${id};`;
+  const getImage = `SELECT file FROM posts_${board} WHERE post = ${id};`;
+
+  db.serialize(() => {
+    db.get(getImage, (err, row) => {
+      if (row.file != "null") {
+        deleteImage(row.file);
+      }
+    })
+
+    db.run(deletePost);
   })
 }
 
