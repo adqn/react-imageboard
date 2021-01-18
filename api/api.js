@@ -19,23 +19,47 @@ let db = new sqlite3.Database("./api/db/boards.db", (err) => {
   }
 });
 
-// const createDb = () =>
-//   new Promise((resolve, reject) =>
-//     fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
-//       if (err) return reject(err);
+const createDb = () =>
+  new Promise((resolve, reject) =>
+    fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
+      if (err) return reject(err);
 
-//       db.exec(data.toString(), (err) => {
-//         if (err) return reject(err);
-//         resolve();
-//       });
-//     })
-//   );
+      db.exec(data.toString(), (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    })
+  );
 
-// createDb();
+createDb();
+
+//
+// user functions
+//
+
+const getToken = () => {
+  return { token: 'test_token' }
+}
+
+const login = (user, callback) => {
+  let token;
+  const sql = `SELECT username FROM users 
+               WHERE username = "${user.username}"
+               AND password = "${user.password}";`;
+  
+  db.get(sql, (err, row) => {
+    if (!row) callback.sendStatus(500);
+    else {
+      token = getToken();
+      callback.send(token);
+    }
+  })
+}
 
 //
 // misc
 //
+
 const deleteImage = file => {
   let name = file.match(/\d+/)[0]
   let ext = file.match(/\..+/)[0]
@@ -65,11 +89,9 @@ const validateFile = fileName => {
     "GIF"
   ]
 
-  if (acceptedFileTypes.find(type => type === ext)) {
-    return true;
-  } else {
-    return false;
-  }
+  if (acceptedFileTypes.find(type => type === ext)) return true;
+  else return false;
+  
 }
 
 const uploadFile = (req, res) => {
@@ -102,19 +124,37 @@ const pruneThreads = (board, callback) => {
   })
 }
 
-const deletePost = (board, id) => {
-  const deletePost = `DELETE FROM posts_${board} WHERE post = ${id};`;
-  const getImage = `SELECT file FROM posts_${board} WHERE post = ${id};`;
+const deletePost = (post, board) => {
+  const postDeleteLimit = 900000;
+  const getPassword = `SELECT password, created FROM posts_${board} WHERE post = ${post.id};`
+  const getImage = `SELECT file FROM posts_${board} WHERE post = ${post.id};`;
+  const deletePost = `DELETE FROM posts_${board} WHERE post = ${post.id};`;
+  let access = true;
 
-  db.serialize(() => {
-    db.get(getImage, (err, row) => {
-      if (row.file != "null") {
-        deleteImage(row.file);
-      }
+  const queryAndDelete = (getImage, deletePost) =>
+    db.serialize(() => {
+      db.get(getImage, (err, row) => {
+        if (row.file != "null") {
+          deleteImage(row.file);
+        }
+      })
+
+      db.run(deletePost);
     })
 
-    db.run(deletePost);
-  })
+  if (post.password) {
+    let currentDate = Date.now();
+
+    db.get(getPassword, (err, row) => {
+      if (row.password === post.password) {
+        if (row.created - currentDate < postDeleteLimit) {
+          queryAndDelete(getImage, deletePost)
+        }
+      }
+    })
+  } else {
+    queryAndDelete(getImage, deletePost)
+  }
 }
 
 //
@@ -125,6 +165,7 @@ function newPost(post, callback) {
   let {
     board,
     thread,
+    created,
     email,
     name,
     comment,
@@ -141,7 +182,7 @@ function newPost(post, callback) {
                (null,
                 ${thread},
                 null,
-                current_timestamp,
+                ${created},
                 "${email}",
                 "${name}", 
                 "${comment}",
@@ -174,6 +215,7 @@ function newThread(post, res) {
     bump,
     board,
     thread,
+    created,
     subject,
     email,
     name,
@@ -186,13 +228,13 @@ function newThread(post, res) {
   } = post;
   let filehash = password = ip = sticky = locked = sage = null;
 
-  const updateBump = `UPDATE posts_${board} SET bump = (bump + 1)`
+  const updateBump = `UPDATE posts_${board} SET bump = (bump + 1) WHERE post = thread;`
   const sql = `INSERT INTO posts_${board} 
                VALUES 
                (NULL,
                 "${thread}",
                 "${subject}",
-                current_timestamp,
+                ${created},
                 "${email}",
                 "${name}", 
                 "${comment}",
@@ -216,6 +258,10 @@ function newThread(post, res) {
     )
   );
 }
+
+//
+// post getters
+//
 
 function getPosts(req, callback) {
   let { query, board, thread, post} = req;
@@ -349,6 +395,10 @@ const getRoutes = async (res) => {
 //
 // routes
 //
+
+router.post("/login", (req, res) => {
+  login(req.body, res);
+})
 
 router.post("/news/newpost", (req, res) => {
   var post = req.body;
