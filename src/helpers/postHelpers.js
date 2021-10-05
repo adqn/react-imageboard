@@ -4,6 +4,7 @@ const regs = {
 }
 
 export const formatComment = ( threadId, comment ) => {
+  if (!comment) return;
   let lines = comment.split("\n");
   
   for (let i in lines) {

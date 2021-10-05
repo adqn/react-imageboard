@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS boards (
     subtitle TEXT DEFAULT NULL
 );
 
--- INSERT INTO boards VALUES
--- ('b', 'Random', NULL);
+INSERT INTO boards VALUES
+('b', 'Random', NULL);
 
--- INSERT INTO boards VALUES
--- ('know', 'Knowledge and Information', NULL);-- 
+INSERT INTO boards VALUES
+('know', 'Knowledge and Information', NULL);-- 

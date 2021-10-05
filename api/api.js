@@ -19,19 +19,19 @@ let db = new sqlite3.Database("./api/db/boards.db", (err) => {
   }
 });
 
-const createDb = () =>
-  new Promise((resolve, reject) =>
-    fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
-      if (err) return reject(err);
+// const createDb = () =>
+//   new Promise((resolve, reject) =>
+//     fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
+//       if (err) return reject(err);
 
-      db.exec(data.toString(), (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    })
-  );
+//       db.exec(data.toString(), (err) => {
+//         if (err) return reject(err);
+//         resolve();
+//       });
+//     })
+//   );
 
-createDb();
+// createDb();
 
 //
 // user functions
@@ -182,7 +182,7 @@ function newPost(post, callback) {
                (null,
                 ${thread},
                 null,
-                ${created},
+                current_timestamp,
                 "${email}",
                 "${name}", 
                 "${comment}",
@@ -229,34 +229,35 @@ function newThread(post, res) {
   let filehash = password = ip = sticky = locked = sage = null;
 
   const updateBump = `UPDATE posts_${board} SET bump = (bump + 1) WHERE post = thread;`
-  const sql = `INSERT INTO posts_${board} 
+  const sql = `INSERT INTO posts_${board}
                VALUES 
-               (NULL,
+               (null,
                 "${thread}",
                 "${subject}",
-                ${created},
+                current_timestamp,
                 "${email}",
                 "${name}", 
                 "${comment}",
                 "${file}",
                 "${fileOrig}",
-                ${fileSize},
-                ${fileWidth},
-                ${fileHeight},
-                ${filehash},
-                ${password},
-                ${ip},
-                ${bump},
-                ${sticky},
-                ${locked},
-                ${sage});`
+                "${fileSize}",
+                "${fileWidth}",
+                "${fileHeight}",
+                "${filehash}",
+                "${password}",
+                "${ip}",
+                "${bump}",
+                "${sticky}",
+                "${locked}",
+                "${sage}");`
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread";`
-  
-  db.run(updateBump, ok =>
-    db.run(sql, ok =>
-      db.run(sql2, ok => pruneThreads(board, res))
-    )
-  );
+  db.run(updateBump, (ok, err) =>
+    err ? console.log("updateBump fail: " + err) :
+      db.run(sql, (ok, err) =>
+        err ? console.log("sql insert fail: " + err) :
+          db.run(sql2, (ok, err) => err ? console.log("sql update fail: " + err) : 
+            pruneThreads(board, res)
+          )));
 }
 
 //
@@ -292,11 +293,11 @@ function getPosts(req, callback) {
 
     if (post != "null") {
       sql2 = `SELECT * FROM posts_${board} a WHERE a.RowId IN (
-              SELECT b.RowId
-                FROM posts_${board} b
-                WHERE a.thread = b.thread
-                ORDER BY b.post DESC LIMIT ${post} 
-            ) ORDER BY thread ASC;`
+                SELECT b.RowId
+                  FROM posts_${board} b
+                  WHERE a.thread = b.thread
+                  ORDER BY b.post DESC LIMIT ${post} 
+              ) ORDER BY thread ASC;`
 
       db.each(sql, (err, row) => partialThreads[row.thread] = [row],
         ok => db.each(sql2, (err, row) => {

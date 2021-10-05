@@ -26,3 +26,4 @@ yarn.lock
 
 api/schema.sql
 api/db/
+api/img

@@ -40,7 +40,7 @@ const OpPost = ({ post }) => {
   let thumb_h;
   let thumb_w;
   let ratio;
-  // let comment = formatComment(post.comment);
+  //let comment = formatComment(post.comment);
 
   if (fileWidth > 150 || fileHeight > 150) {
     ratio = (fileWidth > fileHeight ? 150 / fileWidth : 150 / fileHeight);

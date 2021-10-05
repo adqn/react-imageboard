@@ -114,7 +114,8 @@ const Post = ({ uri = null, post }) => {
         {id === thread ? <PostInfo uri={uri} post={post} /> : null}
 
         <blockquote class="postMessage" id={id}>
-          {commentFormatted}
+          {comment}
+          {/* {commentFormatted} */}
         </blockquote>
       </div>
     </div>
