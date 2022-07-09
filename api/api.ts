@@ -1,13 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path");
-import express, { Express, Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const fileUpload = require("express-fileupload");
 import * as sqlite3 from "sqlite3";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs = require("fs")
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-  , gm = require('gm').subClass({ imageMagick: true });
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const url = require("url");
 // eslint-disable-next-line @typescript-eslint/no-var-requires
