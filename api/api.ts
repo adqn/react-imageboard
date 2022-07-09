@@ -1,0 +1,494 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const path = require("path");
+import express, { Express, Request, Response, NextFunction } from "express";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fileUpload = require("express-fileupload");
+import * as sqlite3 from "sqlite3";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fs = require("fs")
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+  , gm = require('gm').subClass({ imageMagick: true });
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const url = require("url");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+// import * as formidable from "formidable";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const im = require('./images');
+
+const router = express.Router();
+
+const db = new sqlite3.Database("./api/db/boards.db", (err) => {
+  if (err) {
+    console.log("Unable to open database: \n" + "\t" + err.message);
+  } else {
+    console.log("Board database up");
+  }
+});
+
+// const createDb = () =>
+//   new Promise((resolve, reject) =>
+//     fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
+//       if (err) return reject(err);
+
+//       db.exec(data.toString(), (err) => {
+//         if (err) return reject(err);
+//         resolve();
+//       });
+//     })
+//   );
+
+// createDb();
+
+//
+// user functions
+//
+
+const getToken = () => {
+  return { token: 'test_token' }
+}
+
+const login = (user: Record<string, string>, callback?: any) => {
+  let token;
+  const sql = `SELECT username FROM users 
+               WHERE username = "${user.username}"
+               AND password = "${user.password}";`;
+  
+  db.get(sql, (err, row) => {
+    if (!row && callback) callback.sendStatus(500);
+    else {
+      token = getToken();
+      callback.send(token);
+    }
+  })
+}
+
+//
+// misc
+//
+
+const deleteImage = (fileName: string) => {
+  const name = fileName.match(/\d+/)![0];
+  const ext = fileName.match(/\..+/)![0];
+  const fileThumb = name + "s" + ext;
+
+  try {
+    fs.unlinkSync(__dirname + "/img/" + fileName);
+    fs.unlinkSync(__dirname + "/img/" + fileThumb);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+const processImage = (file: any, filePath: string, fileName: string, callback?: any) => {
+  file.mv(filePath + fileName);
+  im.resize(fileName);
+  callback();
+}
+
+const validateFile = (fileName: string) => {
+  const ext = fileName.match(/[^\.]+$/)![0].toUpperCase();
+  const acceptedFileTypes = [
+    "JPG",
+    "JPEG",
+    "PNG",
+    "BMP",
+    "GIF"
+  ]
+
+  if (acceptedFileTypes.find(type => type === ext)) return true;
+  else return false;
+  
+}
+
+const uploadFile = (req: Request, res: Response) => {
+  const file: any = req?.files?.img;
+  const fileName = file?.name;
+  const filePath = path.join(__dirname, './img/');
+
+  validateFile(fileName) ? processImage(file, filePath, fileName, () => res.sendStatus(200))
+    : res.sendStatus(500)
+}
+
+const pruneThreads = (board: string, callback?: any) => {
+  const threadLimit = 100;
+  const getCount = `SELECT COUNT(thread) from posts_${board} WHERE thread = post`;
+  const getLastThread = `SELECT thread FROM posts_${board} GROUP BY thread ORDER BY bump DESC LIMIT 1;`
+
+  db.each(getCount, (err, row) => {
+    const count = row['COUNT(thread)'];
+
+    if (count > threadLimit) {
+      db.each(getLastThread, (err, row) => {
+        const getFile = `SELECT file FROM posts_${board} WHERE thread = ${row.thread};`
+        const deleteThread = `DELETE FROM posts_${board} WHERE thread = ${row.thread};`
+        
+        db.each(getFile, (err, row) => {
+          deleteImage(row.file);
+        }, () => db.run(deleteThread))
+      })
+    }
+  })
+}
+
+interface Post {
+  bump: number,
+  id: number,
+  board: string,
+  thread: number,
+  subject: string,
+  email: string,
+  name: string,
+  comment: string,
+  file: string,
+  password: string,
+  fileOrig: string,
+  fileSize: string,
+  fileWidth: string,
+  fileHeight: string,
+  sage: boolean,
+  created: string
+} 
+
+const deletePost = (post: Post, board: string) => {
+  const postDeleteLimit = 900000;
+  const getPassword = `SELECT password, created FROM posts_${board} WHERE post = ${post.id};`
+  const getImage = `SELECT file FROM posts_${board} WHERE post = ${post.id};`;
+  const deletePost = `DELETE FROM posts_${board} WHERE post = ${post.id};`;
+  const access = true;
+
+  const queryAndDelete = (getImage: string, deletePost: string) =>
+    db.serialize(() => {
+      db.get(getImage, (err, row) => {
+        if (row.file != "null") {
+          deleteImage(row.file);
+        }
+      })
+
+      db.run(deletePost);
+    })
+
+  if (post.password) {
+    const currentDate = Date.now();
+
+    db.get(getPassword, (err, row) => {
+      if (row.password === post.password) {
+        if (row.created - currentDate < postDeleteLimit) {
+          queryAndDelete(getImage, deletePost)
+        }
+      }
+    })
+  } else {
+    queryAndDelete(getImage, deletePost)
+  }
+}
+
+//
+// post functions
+//
+
+function newPost(post: Post, callback?: any) {
+  const {
+    board,
+    thread,
+    created,
+    email,
+    name,
+    comment,
+    file,
+    fileOrig,
+    fileSize,
+    fileWidth,
+    fileHeight,
+    sage
+  } = post;
+  const filehash = null;
+  const password = null;
+  const ip = null;
+  const bump = null;
+  const sticky = null;
+  const locked = null;
+  const sql = `INSERT INTO posts_${board} 
+               VALUES 
+               (null,
+                ${thread},
+                null,
+                current_timestamp,
+                "${email}",
+                "${name}", 
+                "${comment}",
+                "${file}",
+                "${fileOrig}",
+                "${fileSize}",
+                "${fileWidth}",
+                "${fileHeight}",
+                "${filehash}",
+                "${password}",
+                "${ip}",
+                "${bump}",
+                "${sticky}",
+                "${locked}",
+                "${sage}");`
+  const setBump = `UPDATE posts_${board} SET bump = 1 where thread = ${thread};`
+  const updateBump = `UPDATE posts_${board} SET bump = (bump + 1) where thread = post;`
+
+  if (sage) {
+    db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))
+  } else {
+    db.run(updateBump, ok =>
+      db.run(setBump, ok =>
+        db.run(sql, (ok: any, err: Error | null) => err ? console.log(err) : () => callback.sendStatus(200))));
+  }
+}
+
+function newThread(post: Post, res: Response) {
+  const {
+    bump,
+    board,
+    thread,
+    created,
+    subject,
+    email,
+    name,
+    comment,
+    file,
+    fileOrig,
+    fileSize,
+    fileWidth,
+    fileHeight
+  } = post;
+  const filehash = null;
+  const password = null;
+  const ip = null;
+  const sticky = null;
+  const locked = null;
+  const sage = null;
+
+  const updateBump = `UPDATE posts_${board} SET bump = (bump + 1) WHERE post = thread;`
+  const sql = `INSERT INTO posts_${board}
+               VALUES 
+               (null,
+                "${thread}",
+                "${subject}",
+                current_timestamp,
+                "${email}",
+                "${name}", 
+                "${comment}",
+                "${file}",
+                "${fileOrig}",
+                "${fileSize}",
+                "${fileWidth}",
+                "${fileHeight}",
+                "${filehash}",
+                "${password}",
+                "${ip}",
+                "${bump}",
+                "${sticky}",
+                "${locked}",
+                "${sage}");`
+  const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread";`
+  db.run(updateBump, (ok: any, err: Error) =>
+    err ? console.log("updateBump fail: " + err) :
+      db.run(sql, (ok: any, err: Error) =>
+        err ? console.log("sql insert fail: " + err) :
+          db.run(sql2, (ok: any, err: Error) => err ? console.log("sql update fail: " + err) : 
+            pruneThreads(board, res)
+          )));
+}
+
+//
+// post getters
+//
+
+function getPosts(req: Record<string, unknown>, res: Response) {
+  const { query, board, thread, post} = req;
+  const result: any = [];
+  const partialThreads: any = {};
+  let sql;
+  let count: number;
+
+  if (query === "post") {
+    sql = `SELECT * FROM posts_${board} WHERE post = ${post}`;
+
+    db.each(sql, (err, row) => result.push(row), () => res.send(result));
+  }
+
+  if (query === "thread") {
+    sql = `SELECT * FROM posts_${board} WHERE thread = ${thread}`;
+
+    if (post != "null") {
+      sql = sql + ` LIMIT ${post}`
+    }
+
+    db.each(sql, (err, row) => result.push(row), () => res.send(result));
+  }
+
+  if (query === "threads") {
+    sql = `SELECT * FROM posts_${board} GROUP BY thread`;
+
+    if (post != "null") {
+      const sql2 = `SELECT * FROM posts_${board} a WHERE a.RowId IN (
+                SELECT b.RowId
+                  FROM posts_${board} b
+                  WHERE a.thread = b.thread
+                  ORDER BY b.post DESC LIMIT ${post} 
+              ) ORDER BY thread ASC;`
+
+      db.each(sql, (err, row) => partialThreads[row.thread] = [row],
+        ok => db.each(sql2, (err, row) => {
+          if (row.post != row.thread) {
+          partialThreads[row.thread].push(row)
+          }
+        }, ok => res.send(partialThreads)))
+    } else {
+      db.each(sql, (err, row) => result.push(row), () => res.send(result));
+    }
+  }
+
+  if (query === "catalog") {
+    sql = `SELECT * FROM posts_${board} GROUP BY thread ORDER BY bump;`
+    db.each(sql, (err, row) => result.push(row), () => res.send(result));
+  }
+
+  if (query === "omitted") {
+    sql = `SELECT COUNT(thread) from posts_${board} WHERE thread=${thread};`
+
+    db.each(sql, (err, row) => {
+      count = row['COUNT(thread)'];
+    }, () => res.send(count.toString()))
+  }
+}
+
+const getThreadStats = (board: string, res: Response) => {
+  const threads = `SELECT thread FROM posts_${board} GROUP BY thread;`
+  const threadStats: any = [];
+  let threadCount = 0;
+
+  db.each(threads, (err, row) => {
+    const currentThread = { thread: row.thread, posts: 0, images: 0 };
+    const postCount = `SELECT COUNT(post) from posts_${board} WHERE thread = ${row.thread};`
+    const imageCount = `SELECT COUNT(file) from posts_${board} WHERE thread = ${row.thread} and file != "null";`
+    threadCount += 1;
+
+    db.serialize(() => {
+      db.get(postCount, (err, row) => {
+        const posts = row['COUNT(post)'];
+        currentThread.posts = posts;
+      })
+
+      db.get(imageCount, (err, row) => {
+        const images = row['COUNT(file)'];
+        currentThread.images = images;
+        threadStats.push(currentThread)
+
+        if (threadCount === threadStats.length) {
+          res.send(threadStats)
+        }
+      })
+    })
+  })
+}
+
+const getBoards = (res?: Response) => {
+  const sql = `SELECT * FROM boards;`;
+  const result: any = [];
+
+  db.each(sql, (err, row) => result.push(row), () => {
+    if (res) {
+      res.send(result);
+    } else {
+      return result;
+    }
+  });
+};
+
+interface DbCall {
+  uri: string,
+  sql: string
+}
+
+const getRoutes = async (res: Response) => {
+  const boardList: any = [];
+  const dbCalls: DbCall[] = [];
+  const sql = 'SELECT * FROM boards';
+
+  function getThreads(call: any) {
+    return new Promise((resolve, reject) => {
+      db.all(call.sql, (err, rows) => {
+        resolve({ uri: call.uri, threads: rows })
+        reject((err: Error) => console.log(err))
+      })
+    });
+  }
+
+  db.each(sql, (err, row) => {
+    dbCalls.push({ uri: row.uri, sql: `SELECT * FROM posts_${row.uri} GROUP BY thread;` })
+  }, () => {
+    dbCalls.forEach(call => {
+      getThreads(call).then(res => boardList.push(res))
+        .then(() => { boardList.length === dbCalls.length ? res.send(boardList) : null })
+    })
+  })
+}
+
+//
+// routes
+//
+
+router.post("/login", (req, res) => {
+  login(req.body, res);
+})
+
+router.post("/news/newpost", (req, res) => {
+  const post = req.body;
+  const sql = `INSERT INTO news VALUES (
+          NULL,
+          "${post.subject}",
+          "${post.author}",
+          "${post.post}",
+          CURRENT_TIMESTAMP
+        );`
+        
+  db.run(sql, ok => res.sendStatus(200))
+});
+
+router.post("/uploadfile", (req, res) => {
+  uploadFile(req, res);
+});
+
+router.post("/newthread", (req, res) => {
+  newThread(req.body, res);
+});
+
+router.post("/newpost", (req, res) => {
+  newPost(req.body);
+  res.sendStatus(200);
+});
+
+router.get("/getposts", (req, res) => {
+  const query = url.parse(req.url, true).query;
+  getPosts(query, res);
+});
+
+router.get("/news/getposts", (req, res) => {
+  const posts: any = [];
+  const sql = `SELECT * FROM news ORDER BY postId DESC;`
+
+  db.each(sql, (err, row) => posts.push(row), () => res.send(posts));
+})
+
+router.get("/getboards", (req, res) => {
+  getBoards(res);
+});
+
+router.get("/getthreadstats", (req, res) => {
+  const query = url.parse(req.url, true).query;
+  const board = query.board;
+  getThreadStats(board, res);
+})
+
+router.get("/routes", (req, res) => {
+  getRoutes(res);
+});
+
+module.exports = router;

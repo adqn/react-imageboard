@@ -1,12 +1,12 @@
-const fs = require('fs')
-  , gm = require('gm').subClass({imageMagick: true})
+/* eslint-disable @typescript-eslint/no-var-requires */
+const gm = require('gm').subClass({ imageMagick: true })
 
 const resize = imageName => {
   function callback(size) {
     let thumb_w;
     let thumb_h;
 
-    let ratio = (size.width > size.height ? 250/size.width : 250/size.height)
+    let ratio = (size.width > size.height ? 250 / size.width : 250 / size.height)
 
     thumb_w = size.width * ratio;
     thumb_h = size.height * ratio;
