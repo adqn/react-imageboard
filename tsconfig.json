@@ -1,6 +1,7 @@
 {
   "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
+    "lib": ["DOM"],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -12,11 +13,9 @@
     "jsx": "react"
   },
   "include": [
-    ".",
-    "api"
+    "**/*",
   ],
   "exclude": [
     "node_modules",
-    "src"
   ]
 }

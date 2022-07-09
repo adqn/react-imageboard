@@ -7,26 +7,29 @@ import Thread from "./components/Thread";
 import BoardIndex from "./components/BoardIndex";
 import "./App.css";
 
-const api = (option) => "http://localhost:5001/api/" + option;
+const api = (option: string) => "http://localhost:5001/api/" + option;
 
 function App() {
-  const [boards, setBoards] = useState(null);
+  const [boards, setBoards] = useState<any>([]);
   const [threads, setThreads] = useState(null);
-  const [routes, setRoutes] = useState(null);
+  const [routes, setRoutes] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingString, setLoadingString] = useState("Loading.");
   const [ellipsis, setEllipsis] = useState(0);
 
   const NotFound = () => <div>404!</div>
   const DefaultLoading = () => <div className="PageStatus">{loadingString}</div>
-  const Spacer =  () => <div className="Spacer"></div>
-  const BoardHeader = ({ uri, title }) =>
-    <div class="boardBanner">
-      <div class="boardTitle">
-        /{uri}/ - {title}
+  const Spacer = () => <div className="Spacer"></div>
+  const BoardHeader = (props: {
+    uri: string;
+    title: string
+  }) =>
+    <div className="boardBanner">
+      <div className="boardTitle">
+        /{props.uri}/ - {props.title}
       </div>
     </div>
-    
+
   const getBoards = () =>
     fetch(api("getboards"))
       .then(resp => resp.json())
@@ -39,9 +42,9 @@ function App() {
       .then(resp => setRoutes(resp))
   }
 
-  const renderBoardRoutes = (routerProps) => {
-    let boardUri = routerProps.match.params.uri;
-    let foundBoard = boards.find((boardObj) => boardObj.uri === boardUri);
+  const renderBoardRoutes = (routerProps: any) => {
+    const boardUri = routerProps.match.params.uri;
+    const foundBoard = boards.find((boardObj: any) => boardObj.uri === boardUri);
 
     if (foundBoard) {
       return (
@@ -55,15 +58,15 @@ function App() {
     }
   };
 
-  const renderThreadRoutes = (routerProps) => {
-    let uri = routerProps.match.params.uri;
-    let id = parseInt(routerProps.match.params.id);
-    let foundUri = routes.find(route => route.uri === uri);
+  const renderThreadRoutes = (routerProps: any) => {
+    const uri = routerProps.match.params.uri;
+    const id = parseInt(routerProps.match.params.id);
+    const foundUri = routes.find((route: any) => route.uri === uri);
     let foundId = null;
-    let foundBoard = boards.find(board => board.uri === uri)
-    
-    for (let route of routes) {
-      let tempId = route.threads.find(thread => thread.thread === id && route.uri === uri)
+    const foundBoard = boards.find((board: any) => board.uri === uri)
+
+    for (const route of routes) {
+      const tempId = route.threads.find((thread: any) => thread.thread === id && route.uri === uri)
 
       if (tempId) {
         foundId = tempId.thread;
@@ -84,7 +87,7 @@ function App() {
     }
   }
 
-  const animateEllipsis = (count) => {
+  const animateEllipsis = (count: number) => {
     if (ellipsis === count) {
       setEllipsis(0);
       setLoadingString("Loading.");
@@ -99,7 +102,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    let interval = setInterval(() => animateEllipsis(3), 500)
+    const interval = setInterval(() => animateEllipsis(3), 500)
     return () => clearInterval(interval);
   }, [loadingString])
 

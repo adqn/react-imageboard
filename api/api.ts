@@ -1,3 +1,5 @@
+"use strict";
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path");
 import express, { Request, Response } from "express";
@@ -45,17 +47,16 @@ const getToken = () => {
   return { token: 'test_token' }
 }
 
-const login = (user: Record<string, string>, callback?: any) => {
-  let token;
+const login = (user: Record<string, string>, res: Response) => {
   const sql = `SELECT username FROM users 
                WHERE username = "${user.username}"
                AND password = "${user.password}";`;
   
   db.get(sql, (err, row) => {
-    if (!row && callback) callback.sendStatus(500);
+    if (!row && res) res.sendStatus(500);
     else {
-      token = getToken();
-      callback.send(token);
+      const token = getToken();
+      res.send(token);
     }
   })
 }
@@ -107,7 +108,7 @@ const uploadFile = (req: Request, res: Response) => {
     : res.sendStatus(500)
 }
 
-const pruneThreads = (board: string, callback?: any) => {
+const pruneThreads = (board: string, res?: Response) => {
   const threadLimit = 100;
   const getCount = `SELECT COUNT(thread) from posts_${board} WHERE thread = post`;
   const getLastThread = `SELECT thread FROM posts_${board} GROUP BY thread ORDER BY bump DESC LIMIT 1;`
@@ -446,7 +447,7 @@ router.post("/news/newpost", (req, res) => {
           CURRENT_TIMESTAMP
         );`
         
-  db.run(sql, ok => res.sendStatus(200))
+  db.run(sql, () => res.sendStatus(200))
 });
 
 router.post("/uploadfile", (req, res) => {
