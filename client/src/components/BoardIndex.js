@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReplyArea from "./ReplyArea";
 import Post from "./Post";
-import { formatComment } from '../helpers/postHelpers.js';
+import { formatComment } from "../helpers/postHelpers.js";
 
 const PostsOmitted = ({ uri, threadId }) => {
   const [omitted, setOmitted] = useState(null);
@@ -10,68 +10,77 @@ const PostsOmitted = ({ uri, threadId }) => {
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const api = (option) => "http://localhost:5001/api/" + option;
 
-  const OmittedText = () =>
+  const OmittedText = () => (
     <div class="textOmitted">
       {" "}
-      <i>{omitted > 1 ?
-        expanded ? omitted + " replies shown" : omitted + " replies omitted..."
-        : expanded ? omitted + " reply shown" : omitted + " reply omitted..." }</i>
+      <i>
+        {omitted > 1
+          ? expanded
+            ? omitted + " replies shown"
+            : omitted + " replies omitted..."
+          : expanded
+          ? omitted + " reply shown"
+          : omitted + " reply omitted..."}
+      </i>
     </div>
+  );
 
-  const ExpandedPosts = () => 
+  const ExpandedPosts = () => (
     <div>
-      {expandedPosts ? expandedPosts.map(post => <Post post={post} />) : null}
+      {expandedPosts ? expandedPosts.map((post) => <Post post={post} />) : null}
     </div>
+  );
 
   const getReplyCount = () =>
     fetch(api("getposts" + reqString))
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((res) => {
-        console.log(res)
+        console.log(res);
         if (res > 6) {
           let numOmitted = res - 6;
-          setOmitted(numOmitted)
+          setOmitted(numOmitted);
         }
-      })
+      });
 
-  const expandHandler = e => {
+  const expandHandler = (e) => {
     if (!expanded) {
       if (!assetsLoaded) {
-        const reqString = `/?query=thread&board=${uri}&thread=${threadId}&post=${omitted + 1}`;
+        const reqString = `/?query=thread&board=${uri}&thread=${threadId}&post=${
+          omitted + 1
+        }`;
 
         fetch(api("getposts" + reqString))
-          .then(resp => resp.json())
-          .then(resp => setExpandedPosts(resp.slice(1)))
-          .then(resp => setExpanded(true))
-          .then(resp => setAssetsLoaded(true))
-      } else {setExpanded(true)}
+          .then((resp) => resp.json())
+          .then((resp) => setExpandedPosts(resp.slice(1)))
+          .then((resp) => setExpanded(true))
+          .then((resp) => setAssetsLoaded(true));
+      } else {
+        setExpanded(true);
+      }
     } else {
-      setExpanded(false)
+      setExpanded(false);
     }
     e.preventDefault();
-  }
+  };
 
-  const Omitted = () => 
+  const Omitted = () => (
     <div id={threadId}>
-      <a href="" onClick={e => expandHandler(e)}>
+      <a href="" onClick={(e) => expandHandler(e)}>
         <b class="button replyExpand">{expanded ? "-" : "+"}</b>
         <OmittedText />
       </a>
       {expanded ? <ExpandedPosts /> : null}
     </div>
+  );
 
   const reqString = `/?query=omitted&board=${uri}&thread=${threadId}&post=null`;
-  
+
   useEffect(() => {
     getReplyCount();
-  }, [])
+  }, []);
 
-  return (
-  <div>
-    {omitted ? <Omitted /> : null}
-  </div>
-  )
-}
+  return <div>{omitted ? <Omitted /> : null}</div>;
+};
 
 const BumpSortedThreads = ({ uri, threads }) => {
   const [finalThreads, setFinalThreads] = useState(null);
@@ -87,45 +96,41 @@ const BumpSortedThreads = ({ uri, threads }) => {
       bumpOrder[threadId] = bump;
     }
 
-    let keys = Object.keys(bumpOrder)
-    bumpOrder = keys.sort((a, b) => bumpOrder[a] - bumpOrder[b])
+    let keys = Object.keys(bumpOrder);
+    bumpOrder = keys.sort((a, b) => bumpOrder[a] - bumpOrder[b]);
 
     for (let thread of bumpOrder) {
-      tempThreads[' ' + thread] = threads[thread]
+      tempThreads[" " + thread] = threads[thread];
     }
 
     for (let thread in tempThreads) {
       for (let post of tempThreads[thread]) {
         let thePost;
         if (post.post === post.thread) {
-          thePost =
-            <Post uri={uri} post={post} />
+          thePost = <Post uri={uri} post={post} />;
           if (tempThreads[thread].length > 5) {
-            thePost =
+            thePost = (
               <div>
                 <Post post={post} uri={uri} />
                 <PostsOmitted uri={uri} threadId={post.thread} />
               </div>
+            );
           }
         } else {
-          thePost = <Post post={post} />
+          thePost = <Post post={post} />;
         }
-        threadArray.push(thePost)
+        threadArray.push(thePost);
       }
-      threadArray.push(<hr class="desktop" id="op" />)
-    } 
+      threadArray.push(<hr class="desktop" id="op" />);
+    }
 
     setFinalThreads(threadArray);
-  }
+  };
 
-  useEffect(() => orderAndFormatThreads(), [])
+  useEffect(() => orderAndFormatThreads(), []);
 
-  return (
-    <div>
-      {finalThreads}
-    </div>
-  )
-}
+  return <div>{finalThreads}</div>;
+};
 
 const BoardIndex = ({ uri }) => {
   const [threads, setThreads] = useState(null);
@@ -140,9 +145,9 @@ const BoardIndex = ({ uri }) => {
   const getThreads = () =>
     fetch(api("getposts" + reqString))
       .then((resp) => resp.json())
-      .then(resp => {
+      .then((resp) => {
         setThreads(resp);
-      })
+      });
 
   useEffect(() => {
     getThreads();
@@ -153,12 +158,15 @@ const BoardIndex = ({ uri }) => {
       <ReplyArea index={true} uri={uri} id={null} />
       <hr />
       <div class="navLinks desktop">
-        [<a href="../../" accesskey="a">Home</a>]
-        [<a href={uri + "/catalog"}>Catalog</a>]
-        [<a href="#bottom">Bottom</a>]
+        [
+        <a href="../../" accesskey="a">
+          Home
+        </a>
+        ] [<a href={uri + "/catalog"}>Catalog</a>] [<a href="#bottom">Bottom</a>
+        ]
       </div>
       <hr />
-          {threads ? <BumpSortedThreads uri={uri} threads={threads} /> : null}
+      {threads ? <BumpSortedThreads uri={uri} threads={threads} /> : null}
     </div>
   );
 };

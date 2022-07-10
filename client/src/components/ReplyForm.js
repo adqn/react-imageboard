@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import axios from 'axios';
+import axios from "axios";
 
 const api = (option) => "http://localhost:5001/api/" + option;
 
 const ReplyForm = ({ index, uri, threadId }) => {
-  const [subject, setSubject] = useState("")
+  const [subject, setSubject] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [comment, setComment] = useState("");
@@ -28,21 +28,15 @@ const ReplyForm = ({ index, uri, threadId }) => {
     img.onload = () => callback(img.naturalWidth, img.naturalHeight);
 
     // img.remove();
-  }
+  };
 
-  const uploadFile = (filename) => 
+  const uploadFile = (filename) =>
     new Promise((resolve, reject) => {
-
       const formData = new FormData();
-      formData.append(
-        "img",
-        file,
-        filename
-      );
+      formData.append("img", file, filename);
 
-      axios.post(api("uploadfile"), formData)
-        .then(resp => resolve(resp))
-    })
+      axios.post(api("uploadfile"), formData).then((resp) => resolve(resp));
+    });
 
   const submitReply = (post) => {
     fetch(api("newpost"), postReq(post))
@@ -60,16 +54,16 @@ const ReplyForm = ({ index, uri, threadId }) => {
     setTimeout(() => setPostStatus(""), 3000);
   };
 
-  const submitThread = post => {
+  const submitThread = (post) => {
     fetch(api("newthread"), postReq(post))
-      .then(resp => {
+      .then((resp) => {
         if (resp.status === 200) {
           setPostStatus("Post successful!");
           clearReplyForm();
         }
       })
-      .catch((err) => console.log(err))
-  }
+      .catch((err) => console.log(err));
+  };
 
   const postReq = (body) => {
     return {
@@ -84,7 +78,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
     let finalName;
     let finalFileName = null;
 
-    name === "" ? finalName = "Anonymous" : finalName = name;
+    name === "" ? (finalName = "Anonymous") : (finalName = name);
 
     if (file) {
       let epoch = new Date().getTime();
@@ -100,8 +94,8 @@ const ReplyForm = ({ index, uri, threadId }) => {
       email: email,
       name: finalName,
       comment: comment,
-      file: finalFileName
-    }
+      file: finalFileName,
+    };
 
     if (index) {
       post.thread = "newthread";
@@ -114,23 +108,24 @@ const ReplyForm = ({ index, uri, threadId }) => {
         getDimensions(file, (fileWidth, fileHeight) => {
           if (fileWidth < 10000 || fileHeight < 10000) {
             let fileInfo = { fileSize, fileWidth, fileHeight };
-            uploadFile(finalFileName)
-              .then(res => {
-                if (res.status === 200) {
-                  submitThread({ ...post, ...fileInfo });
-                  setPostStatus("Post successful!")
-                } else {
-                  setPostStatus("Error: upload failed.")
-                }
-              });
+            uploadFile(finalFileName).then((res) => {
+              if (res.status === 200) {
+                submitThread({ ...post, ...fileInfo });
+                setPostStatus("Post successful!");
+              } else {
+                setPostStatus("Error: upload failed.");
+              }
+            });
           }
         });
       } else {
-        setPostStatus("Error: you must select an image when making a new thread!");
+        setPostStatus(
+          "Error: you must select an image when making a new thread!"
+        );
         return;
       }
     } else {
-      email === "sage" ? post.sage = 1 : post.sage = null;
+      email === "sage" ? (post.sage = 1) : (post.sage = null);
       setPostStatus("Submitting post...");
 
       if (file) {
@@ -138,23 +133,23 @@ const ReplyForm = ({ index, uri, threadId }) => {
 
         getDimensions(file, (fileWidth, fileHeight) => {
           if (fileWidth < 10000 || fileWidth < 10000) {
-            let fileInfo = {fileSize, fileWidth, fileHeight }
-            uploadFile(finalFileName)
-              .then(res => {
-                if (res.status === 200) {
-                  submitReply({ ...post, ...fileInfo });
-                  setPostStatus("Post successful!")
-                } else {
-                  setPostStatus("Error: upload failed.")
-                }
-              });
+            let fileInfo = { fileSize, fileWidth, fileHeight };
+            uploadFile(finalFileName).then((res) => {
+              if (res.status === 200) {
+                submitReply({ ...post, ...fileInfo });
+                setPostStatus("Post successful!");
+              } else {
+                setPostStatus("Error: upload failed.");
+              }
+            });
           } else {
-              setPostStatus("Error: image dimensions must be less than 10000x10000.")
+            setPostStatus(
+              "Error: image dimensions must be less than 10000x10000."
+            );
           }
         });
-
       } else {
-        let f = {fileSize: null, fileWidth: null, fileHeight: null}
+        let f = { fileSize: null, fileWidth: null, fileHeight: null };
         submitReply({ ...post, ...f });
       }
     }
@@ -193,7 +188,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
               </td>
             </tr>
 
-            {index ? 
+            {index ? (
               <tr data-type="Name">
                 <td>Subject</td>
                 <td>
@@ -207,9 +202,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
                   />
                 </td>
               </tr>
-              :
-              null
-            }
+            ) : null}
 
             <tr data-type="Email">
               <td>Email</td>

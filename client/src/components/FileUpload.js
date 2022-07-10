@@ -1,9 +1,5 @@
 import React from 'react';
 
-const 
-
-const FileUpload = () => {
-
-}
+const FileUpload = () => { }
 
 export default FileUpload;

@@ -1,6 +1,6 @@
 import { React, useEffect, useState } from "react";
 import Post from "./Post";
-import ReplyForm from './ReplyForm';
+import ReplyForm from "./ReplyForm";
 
 const Posts = ({ posts }) => (
   <div className="Post">
@@ -45,15 +45,18 @@ function Thread({ uri, id }) {
     <div>
       <div className="ThreadContainer">
         <hr class="desktop" id="op" />
-        <div class="navLinks desktop">[<a href="../../" accesskey="a">Return</a>] [<a href="../../catalog">Catalog</a>] [<a
-          href="#bottom">Bottom</a>]</div>
+        <div class="navLinks desktop">
+          [
+          <a href="../../" accesskey="a">
+            Return
+          </a>
+          ] [<a href="../../catalog">Catalog</a>] [<a href="#bottom">Bottom</a>]
+        </div>
         <hr class="desktop" id="op" />
         <Posts posts={posts} />
         <hr class="desktop" id="op" />
         <div className="statusBar">
-          <div className="refreshTimer">
-            {isLoading ? null : countdownTime}
-          </div>
+          <div className="refreshTimer">{isLoading ? null : countdownTime}</div>
         </div>
       </div>
     </div>
