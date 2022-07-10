@@ -7,6 +7,7 @@ const api = require('./api/api');
 
 dotenv.config();
 const app: Express = express();
+const port = 5001;
 
 app.use(express.urlencoded());
 app.use(express.json());
@@ -20,15 +21,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use(fileUpload({ createParentPath: true }))
 app.use('/img', express.static('./api/img'));
+app.use('/api', api);
 
-app.get("/test", (req, res) => {
+app.get("/test", (req: Request, res: Response) => {
   res.writeHead(200, { "content-type": "text/html" });
   fs.createReadStream(__dirname + "/api/test.html").pipe(res);
 });
 
-app.use('/api', api);
-
-const port = 5001;
 app.listen(port, () =>
   console.log("Server listening on port " + port)
 );
