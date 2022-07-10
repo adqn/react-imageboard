@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { checkImage } from "../helpers/imageChecker";
+import * as config from "../config";
 
 const api = (option) => "http://localhost:5001/api/" + option;
 
@@ -86,15 +87,19 @@ const ReplyForm = ({ index, uri, threadId }) => {
   const handlePreSubmit = (e) => {
     e.preventDefault();
 
-    checkImage(getImageObject(file)).then((predictions) => {
-      console.log(predictions);
+    if (config.nsfw_mode) {
+      checkImage(getImageObject(file)).then((predictions) => {
+        console.log(predictions);
 
-      if (predictions[0].className === "Neutral") {
-        handleSubmit(file);
-      } else {
-        handleSubmit();
-      }
-    });
+        if (predictions[0].className === "Neutral") {
+          handleSubmit(file);
+        } else {
+          handleSubmit();
+        }
+      });
+    } else {
+      handleSubmit(file);
+    }
   };
 
   const handleSubmit = (file) => {
