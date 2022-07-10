@@ -26,7 +26,10 @@ const ReplyForm = ({ index, uri, threadId }) => {
     let img = new Image();
     img.src = window.URL.createObjectURL(image);
 
-    img.onload = () => callback(img.naturalWidth, img.naturalHeight);
+    img.onload = () => {
+      checkImage(img);
+      callback(img.naturalWidth, img.naturalHeight);
+    };
 
     // img.remove();
   };
@@ -86,7 +89,6 @@ const ReplyForm = ({ index, uri, threadId }) => {
       let ext = file.name.match(/\..+/)[0];
 
       finalFileName = epoch + ext;
-      console.log("??????");
     }
 
     post = {
