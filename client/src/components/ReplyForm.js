@@ -21,13 +21,19 @@ const ReplyForm = ({ index, uri, threadId }) => {
     setFile(null);
   };
 
-  const getDimensions = (image, callback) => {
+  const getImageObject = (file) => {
+    const img = new Image();
+
     window.URL = window.URL || window.webkitURL;
-    let img = new Image();
-    img.src = window.URL.createObjectURL(image);
+    img.src = window.URL.createObjectURL(file);
+
+    return img;
+  };
+
+  const getDimensions = (file, callback) => {
+    const img = getImageObject(file);
 
     img.onload = () => {
-      checkImage(img);
       callback(img.naturalWidth, img.naturalHeight);
     };
 
@@ -77,19 +83,33 @@ const ReplyForm = ({ index, uri, threadId }) => {
     };
   };
 
-  const handleSubmit = (e) => {
+  const handlePreSubmit = (e) => {
+    e.preventDefault();
+
+    checkImage(getImageObject(file)).then((predictions) => {
+      console.log(predictions);
+
+      if (predictions[0].className === "Neutral") {
+        handleSubmit(file);
+      } else {
+        handleSubmit();
+      }
+    });
+  };
+
+  const handleSubmit = (file) => {
     let post;
     let finalName;
     let finalFileName = null;
 
-    name === "" ? (finalName = "Anonymous") : (finalName = name);
-
     if (file) {
-      let epoch = new Date().getTime();
-      let ext = file.name.match(/\..+/)[0];
+      const epoch = new Date().getTime();
+      const ext = file.name.match(/\..+/)[0];
 
       finalFileName = epoch + ext;
     }
+
+    name === "" ? (finalName = "Anonymous") : (finalName = name);
 
     post = {
       board: uri,
@@ -158,7 +178,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
       }
     }
 
-    e.preventDefault();
+    // e.preventDefault();
   };
 
   return (
@@ -223,7 +243,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
                   type="submit"
                   value="Post"
                   tabindex="6"
-                  onClick={(e) => handleSubmit(e)}
+                  onClick={(e) => handlePreSubmit(e)}
                 />
               </td>
             </tr>
