@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
+import { checkImage } from "../helpers/imageChecker";
 
 const api = (option) => "http://localhost:5001/api/" + option;
 
@@ -85,6 +86,7 @@ const ReplyForm = ({ index, uri, threadId }) => {
       let ext = file.name.match(/\..+/)[0];
 
       finalFileName = epoch + ext;
+      console.log("??????");
     }
 
     post = {
