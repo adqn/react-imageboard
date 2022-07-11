@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import axios, { AxiosResponse } from "axios";
 import { checkImage } from "../helpers/imageChecker";
 import * as config from "../config";
-import e from "express";
 
 const api = (option: string) => "http://localhost:5001/api/" + option;
 
