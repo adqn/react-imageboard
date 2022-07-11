@@ -64,7 +64,7 @@ function App() {
     const uri = routerProps.match.params.uri;
     const id = parseInt(routerProps.match.params.id);
     const foundUri = routes.find((route: any) => route.uri === uri);
-    let foundId = null;
+    let foundId;
     const foundBoard = boards.find((board: any) => board.uri === uri);
 
     for (const route of routes) {
