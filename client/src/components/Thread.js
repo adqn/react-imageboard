@@ -47,7 +47,7 @@ function Thread({ uri, id }) {
         <hr class="desktop" id="op" />
         <div class="navLinks desktop">
           [
-          <a href="../../" accesskey="a">
+          <a href="../../" accessKey="a">
             Return
           </a>
           ] [<a href="../../catalog">Catalog</a>] [<a href="#bottom">Bottom</a>]

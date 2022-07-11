@@ -13,7 +13,7 @@ const ReplyForm = ({
 }: {
   index: boolean;
   uri: string;
-  threadId: number;
+  threadId?: number;
 }) => {
   const [subject, setSubject] = useState<string>("");
   const [name, setName] = useState<string>("");
@@ -32,10 +32,8 @@ const ReplyForm = ({
 
   const getImageObject = (file: File) => {
     const img = new Image();
-
     window.URL = window.URL || window.webkitURL;
     img.src = window.URL.createObjectURL(file);
-
     return img;
   };
 
@@ -44,9 +42,8 @@ const ReplyForm = ({
 
     img.onload = () => {
       callback(img.naturalWidth, img.naturalHeight);
+      img.remove();
     };
-
-    // img.remove();
   };
 
   const uploadFile = (filename: string) =>
@@ -147,6 +144,7 @@ const ReplyForm = ({
         getDimensions(file, (fileWidth: string, fileHeight: string) => {
           if (Number(fileWidth) < 10000 || Number(fileHeight) < 10000) {
             let fileInfo = { fileSize, fileWidth, fileHeight };
+
             uploadFile(post.file as string).then((res: any) => {
               if (res.status === 200) {
                 submitThread({ ...post, ...fileInfo });
@@ -175,6 +173,7 @@ const ReplyForm = ({
             post.fileSize = fileSize;
             post.fileWidth = fileWidth;
             post.fileHeight = fileHeight;
+
             uploadFile(post.file as string).then((res: any) => {
               if (res.status === 200) {
                 submitReply(post);
@@ -190,18 +189,14 @@ const ReplyForm = ({
           }
         });
       } else {
-        // post.fileSize = post.fileWidth = post.fileHeight = null;
         submitReply(post);
       }
     }
-
-    // e.preventDefault();
   };
 
   return (
     <div id="replyField">
       <table>
-        {/* <div style='position:relative'></div> */}
         <form
           name="post"
           action=""

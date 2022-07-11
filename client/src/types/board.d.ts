@@ -1,6 +1,6 @@
 interface Post {
   board: string,
-  thread: number | string,
+  thread?: number | string,
   subject: string,
   email: string,
   name: string,

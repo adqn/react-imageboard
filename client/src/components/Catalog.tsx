@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ReplyArea from "./ReplyArea";
+import ReplyForm from "./ReplyForm";
 import { formatComment } from "../helpers/postHelpers.js";
 
 const api = (option: string) => "http://localhost:5001/api/" + option;
@@ -111,7 +111,7 @@ const Catalog = ({ uri }: { uri: string }) => {
 
   return (
     <div>
-      <ReplyArea index={true} uri={uri} id={null} />
+      <ReplyForm index={true} uri={uri} />
       <hr />
       <div className="navLinks">
         [<a href="../../">Home</a>] [<a href={"/" + uri}>Index</a>] [

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ReplyArea from "./ReplyArea";
+import ReplyForm from "./ReplyForm";
 import Post from "./Post";
 import { formatComment } from "../helpers/postHelpers.js";
 
@@ -155,7 +155,7 @@ const BoardIndex = ({ uri }) => {
 
   return (
     <div>
-      <ReplyArea index={true} uri={uri} id={null} />
+      <ReplyForm index={true} uri={uri} />
       <hr />
       <div class="navLinks desktop">
         [
