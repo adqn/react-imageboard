@@ -57,7 +57,7 @@ const Post = ({ uri = null, post }) => {
 
   fileSize = Math.ceil(fileSize / 1024);
 
-  if (file != null && file != "null") {
+  if (file != null && file != "null" && file !== "undefined") {
     fileThumb = file.match(/\d+/)[0] + "s" + file.match(/\..+/)[0];
 
     if (id != thread) {
