@@ -57,10 +57,10 @@ const Post = ({ uri = null, post }) => {
 
   fileSize = Math.ceil(fileSize / 1024);
 
-  if (file != null && file != "null" && file !== "undefined") {
+  if (file != null && file !== "null" && file !== "undefined") {
     fileThumb = file.match(/\d+/)[0] + "s" + file.match(/\..+/)[0];
 
-    if (id != thread) {
+    if (id !== thread) {
       ratio = fileWidth > fileHeight ? 125 / fileWidth : 125 / fileHeight;
       thumb_w = fileWidth * ratio;
       thumb_h = fileHeight * ratio;
@@ -75,11 +75,11 @@ const Post = ({ uri = null, post }) => {
       id={id}
     >
       <div class="sideArrows" id={"sa" + id}>
-        {id != thread ? ">>" : null}
+        {id !== thread ? ">>" : null}
       </div>
-      <div id={"p" + id} class={id == thread ? "post op" : "post reply"}>
-        {id != thread ? <PostInfo post={post} /> : null}
-        {file != "null" && file != null ? (
+      <div id={"p" + id} class={id === thread ? "post op" : "post reply"}>
+        {id !== thread ? <PostInfo post={post} /> : null}
+        {file !== "null" && file != null ? (
           <div class="file" id="">
             <div class="fileText" id="">
               File:{" "}

@@ -1,9 +1,33 @@
-import React, { useCallback, useEffect, useState } from "react";
-import axios, { AxiosResponse } from "axios";
+import React, { useState } from "react";
+import axios from "axios";
 import { checkImage } from "../helpers/imageChecker";
 import * as config from "../config";
 
 const api = (option: string) => "http://localhost:5001/api/" + option;
+
+const getImageObject = (file: File) => {
+  const img = new Image();
+  window.URL = window.URL || window.webkitURL;
+  img.src = window.URL.createObjectURL(file);
+  return img;
+};
+
+const getDimensions = (file: File, callback: any) => {
+  const img = getImageObject(file);
+
+  img.onload = () => {
+    callback(img.naturalWidth, img.naturalHeight);
+    img.remove();
+  };
+};
+
+const uploadFile = (file: Blob, filename: string) =>
+  new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("img", file as Blob, filename);
+
+    axios.post(api("uploadfile"), formData).then((resp) => resolve(resp));
+  });
 
 const ReplyForm = ({
   index,
@@ -28,30 +52,6 @@ const ReplyForm = ({
     setComment("");
     setFile(undefined);
   };
-
-  const getImageObject = (file: File) => {
-    const img = new Image();
-    window.URL = window.URL || window.webkitURL;
-    img.src = window.URL.createObjectURL(file);
-    return img;
-  };
-
-  const getDimensions = (file: File, callback: any) => {
-    const img = getImageObject(file);
-
-    img.onload = () => {
-      callback(img.naturalWidth, img.naturalHeight);
-      img.remove();
-    };
-  };
-
-  const uploadFile = (filename: string) =>
-    new Promise((resolve, reject) => {
-      const formData = new FormData();
-      formData.append("img", file as Blob, filename);
-
-      axios.post(api("uploadfile"), formData).then((resp) => resolve(resp));
-    });
 
   const submitReply = (post: Post) => {
     fetch(api("newpost"), postReq(post))
@@ -144,7 +144,7 @@ const ReplyForm = ({
           if (Number(fileWidth) < 10000 || Number(fileHeight) < 10000) {
             let fileInfo = { fileSize, fileWidth, fileHeight };
 
-            uploadFile(post.file as string).then((res: any) => {
+            uploadFile(file, post.file as string).then((res: any) => {
               if (res.status === 200) {
                 submitThread({ ...post, ...fileInfo });
                 setPostStatus("Post successful!");
@@ -173,7 +173,7 @@ const ReplyForm = ({
             post.fileWidth = fileWidth;
             post.fileHeight = fileHeight;
 
-            uploadFile(post.file as string).then((res: any) => {
+            uploadFile(file, post.file as string).then((res: any) => {
               if (res.status === 200) {
                 submitReply(post);
                 setPostStatus("Post successful!");
