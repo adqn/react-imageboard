@@ -129,24 +129,6 @@ const pruneThreads = (board: string, res?: Response) => {
   })
 }
 
-interface Post {
-  bump: number,
-  id: number,
-  board: string,
-  thread: number,
-  subject: string,
-  email: string,
-  name: string,
-  comment: string,
-  file: string,
-  password: string,
-  fileOrig: string,
-  fileSize: string,
-  fileWidth: string,
-  fileHeight: string,
-  sage: boolean,
-  created: string
-} 
 
 const deletePost = (post: Post, board: string) => {
   const postDeleteLimit = 900000;
