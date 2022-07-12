@@ -3,18 +3,19 @@ import ReplyForm from "./ReplyForm";
 import Post from "./Post";
 import { formatComment } from "../helpers/postHelpers.js";
 
-const PostsOmitted = ({ uri, threadId }) => {
-  const [omitted, setOmitted] = useState(null);
-  const [expanded, setExpanded] = useState(false);
-  const [expandedPosts, setExpandedPosts] = useState(null);
-  const [assetsLoaded, setAssetsLoaded] = useState(false);
-  const api = (option) => "http://localhost:5001/api/" + option;
+const PostsOmitted = ({ uri, threadId }: { uri: string; threadId: number }) => {
+  const [omitted, setOmitted] = useState<number | undefined>();
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const [expandedPosts, setExpandedPosts] = useState<any | undefined>();
+  const [assetsLoaded, setAssetsLoaded] = useState<boolean>(false);
+
+  const api = (option: string) => "http://localhost:5001/api/" + option;
 
   const OmittedText = () => (
-    <div class="textOmitted">
+    <div className="textOmitted">
       {" "}
       <i>
-        {omitted > 1
+        {omitted && omitted > 1
           ? expanded
             ? omitted + " replies shown"
             : omitted + " replies omitted..."
@@ -27,7 +28,9 @@ const PostsOmitted = ({ uri, threadId }) => {
 
   const ExpandedPosts = () => (
     <div>
-      {expandedPosts ? expandedPosts.map((post) => <Post post={post} />) : null}
+      {expandedPosts && expandedPosts
+        ? expandedPosts.map((post: Post) => <Post post={post} />)
+        : null}
     </div>
   );
 
@@ -42,11 +45,11 @@ const PostsOmitted = ({ uri, threadId }) => {
         }
       });
 
-  const expandHandler = (e) => {
+  const expandHandler = (e: any) => {
     if (!expanded) {
       if (!assetsLoaded) {
         const reqString = `/?query=thread&board=${uri}&thread=${threadId}&post=${
-          omitted + 1
+          omitted && omitted + 1
         }`;
 
         fetch(api("getposts" + reqString))
@@ -60,13 +63,14 @@ const PostsOmitted = ({ uri, threadId }) => {
     } else {
       setExpanded(false);
     }
+
     e.preventDefault();
   };
 
   const Omitted = () => (
-    <div id={threadId}>
+    <div id={`${threadId}`}>
       <a href="" onClick={(e) => expandHandler(e)}>
-        <b class="button replyExpand">{expanded ? "-" : "+"}</b>
+        <b className="button replyExpand">{expanded ? "-" : "+"}</b>
         <OmittedText />
       </a>
       {expanded ? <ExpandedPosts /> : null}
@@ -82,11 +86,11 @@ const PostsOmitted = ({ uri, threadId }) => {
   return <div>{omitted ? <Omitted /> : null}</div>;
 };
 
-const BumpSortedThreads = ({ uri, threads }) => {
+const BumpSortedThreads = ({ uri, threads }: { uri: string; threads: any }) => {
   const [finalThreads, setFinalThreads] = useState(null);
-  let bumpOrder = {};
-  let tempThreads = {};
-  let threadArray = [];
+  const bumpOrder: any = {};
+  const tempThreads: any = {};
+  const threadArray: any = [];
 
   // lazy.....
   const orderAndFormatThreads = () => {
@@ -97,9 +101,9 @@ const BumpSortedThreads = ({ uri, threads }) => {
     }
 
     let keys = Object.keys(bumpOrder);
-    bumpOrder = keys.sort((a, b) => bumpOrder[a] - bumpOrder[b]);
+    const bumpOrderSorted = keys.sort((a, b) => bumpOrder[a] - bumpOrder[b]);
 
-    for (let thread of bumpOrder) {
+    for (let thread of bumpOrderSorted) {
       tempThreads[" " + thread] = threads[thread];
     }
 
@@ -121,7 +125,7 @@ const BumpSortedThreads = ({ uri, threads }) => {
         }
         threadArray.push(thePost);
       }
-      threadArray.push(<hr class="desktop" id="op" />);
+      threadArray.push(<hr className="desktop" id="op" />);
     }
 
     setFinalThreads(threadArray);
@@ -132,10 +136,10 @@ const BumpSortedThreads = ({ uri, threads }) => {
   return <div>{finalThreads}</div>;
 };
 
-const BoardIndex = ({ uri }) => {
+const BoardIndex = ({ uri }: { uri: string }) => {
   const [threads, setThreads] = useState(null);
   const [repliesOmitted, setRepliesOmitted] = useState([]);
-  const api = (option) => "http://localhost:5001/api/" + option;
+  const api = (option: string) => "http://localhost:5001/api/" + option;
 
   // Here 'post' is the number of posts per thread to get
   // Change this so I don't have to re-use &post for something different
@@ -157,9 +161,9 @@ const BoardIndex = ({ uri }) => {
     <div>
       <ReplyForm index={true} uri={uri} />
       <hr />
-      <div class="navLinks desktop">
+      <div className="navLinks desktop">
         [
-        <a href="../../" accesskey="a">
+        <a href="../../" accessKey="a">
           Home
         </a>
         ] [<a href={uri + "/catalog"}>Catalog</a>] [<a href="#bottom">Bottom</a>
