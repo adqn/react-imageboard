@@ -2,24 +2,28 @@ import { text } from "body-parser";
 import React, { useState } from "react";
 import { formatComment } from "../helpers/postHelpers.js";
 
-const quote = (id) => "javascript:quote(" + id + ");";
+const quote = (id: string) => "javascript:quote(" + id + ");";
 
-const linkEmail = (email, name) => <a href={"mailto: " + email}>{name}</a>;
+const linkEmail = (email: string, name: string) => (
+  <a href={"mailto: " + email}>{name}</a>
+);
 
-const PostInfo = ({ uri = null, post }) => (
-  <div class="postInfo" id={post.post}>
+const PostInfo = ({ uri = null, post }: { uri?: string | null; post: any }) => (
+  <div className="postInfo" id={post.post}>
     <input type="checkbox" name={post.post} value="delete" />
-    <span class="subject">{post.subject ? " " + post.subject : null}</span>{" "}
-    <span class="nameBlock">
-      <span class="name">
+    <span className="subject">
+      {post.subject ? " " + post.subject : null}
+    </span>{" "}
+    <span className="nameBlock">
+      <span className="name">
         {post.email === "" ? post.name : linkEmail(post.email, post.name)}
       </span>
     </span>
-    <span class="dateTime" data-utc="">
+    <span className="dateTime" data-utc="">
       {" "}
       {post.created}
     </span>
-    <span class="postNum">
+    <span className="postNum">
       <a href={"#p" + post.post} title="Link to this post">
         {" "}
         No. {post.post + " "}
@@ -29,7 +33,10 @@ const PostInfo = ({ uri = null, post }) => (
     {uri && post.post === post.thread ? (
       <span>
         &nbsp; [
-        <a href={"/" + uri + "/thread/" + post.thread + "/"} class="replylink">
+        <a
+          href={"/" + uri + "/thread/" + post.thread + "/"}
+          className="replylink"
+        >
           Reply
         </a>
         ]
@@ -38,10 +45,10 @@ const PostInfo = ({ uri = null, post }) => (
   </div>
 );
 
-const Post = ({ uri = null, post }) => {
+const Post = ({ uri = null, post }: { uri?: string | null; post: any }) => {
   const [imageExpanded, setImageExpanded] = useState(false);
 
-  const handleImageClick = (e) => {
+  const handleImageClick = (e: any) => {
     setImageExpanded(!imageExpanded);
     e.preventDefault();
   };
@@ -69,28 +76,28 @@ const Post = ({ uri = null, post }) => {
 
   return (
     <div
-      class={
+      className={
         "postContainer" + (id === thread ? "opContainer" : "replyContainer")
       }
       id={id}
     >
-      <div class="sideArrows" id={"sa" + id}>
+      <div className="sideArrows" id={"sa" + id}>
         {id !== thread ? ">>" : null}
       </div>
-      <div id={"p" + id} class={id === thread ? "post op" : "post reply"}>
+      <div id={"p" + id} className={id === thread ? "post op" : "post reply"}>
         {id !== thread ? <PostInfo post={post} /> : null}
         {file !== "null" && file != null ? (
-          <div class="file" id="">
-            <div class="fileText" id="">
+          <div className="file" id="">
+            <div className="fileText" id="">
               File:{" "}
               <a href={"http://localhost:5001/img/" + file} target="_blank">
                 {fileOrig}
               </a>{" "}
               ({fileSize} KB, {fileWidth + "x" + fileHeight})
-              <div class="post spacer"></div>
+              <div className="post spacer"></div>
             </div>
             <a
-              class="fileThumb"
+              className="fileThumb"
               href={"http://localhost:5001/img/" + file}
               target="_blank"
             >
@@ -103,7 +110,9 @@ const Post = ({ uri = null, post }) => {
                 alt={fileSize}
                 data-md5=""
                 style={
-                  id === thread ? null : { height: thumb_h, width: thumb_w }
+                  id === thread
+                    ? undefined
+                    : { height: thumb_h, width: thumb_w }
                 }
                 onClick={(e) => handleImageClick(e)}
               />
@@ -113,7 +122,7 @@ const Post = ({ uri = null, post }) => {
 
         {id === thread ? <PostInfo uri={uri} post={post} /> : null}
 
-        <blockquote class="postMessage" id={id}>
+        <blockquote className="postMessage" id={id}>
           {comment}
           {/* {commentFormatted} */}
         </blockquote>

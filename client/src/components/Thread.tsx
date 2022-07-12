@@ -1,8 +1,8 @@
-import { React, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Post from "./Post";
 import ReplyForm from "./ReplyForm";
 
-const Posts = ({ posts }) => (
+const Posts = ({ posts }: { posts: Post[] }) => (
   <div className="Post">
     {posts.map((post) => (
       <Post post={post} />
@@ -10,7 +10,7 @@ const Posts = ({ posts }) => (
   </div>
 );
 
-function Thread({ uri, id }) {
+function Thread({ uri, id }: { uri: string; id: number }) {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [countdownTime, setCountdown] = useState(5);
@@ -25,7 +25,7 @@ function Thread({ uri, id }) {
         setIsLoading(false);
       });
 
-  const countdown = (timeFrom, callback) => {
+  const countdown = (timeFrom: number, callback: () => void) => {
     if (countdownTime === 1) {
       setCountdown(timeFrom);
       callback();
@@ -44,17 +44,17 @@ function Thread({ uri, id }) {
   return (
     <div>
       <div className="ThreadContainer">
-        <hr class="desktop" id="op" />
-        <div class="navLinks desktop">
+        <hr className="desktop" id="op" />
+        <div className="navLinks desktop">
           [
           <a href="../../" accessKey="a">
             Return
           </a>
           ] [<a href="../../catalog">Catalog</a>] [<a href="#bottom">Bottom</a>]
         </div>
-        <hr class="desktop" id="op" />
+        <hr className="desktop" id="op" />
         <Posts posts={posts} />
-        <hr class="desktop" id="op" />
+        <hr className="desktop" id="op" />
         <div className="statusBar">
           <div className="refreshTimer">{isLoading ? null : countdownTime}</div>
         </div>

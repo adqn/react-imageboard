@@ -29,6 +29,14 @@ const uploadFile = (file: Blob, filename: string) =>
     axios.post(api("uploadfile"), formData).then((resp) => resolve(resp));
   });
 
+const postReq = (body: any) => {
+  return {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  };
+};
+
 const ReplyForm = ({
   index,
   uri,
@@ -78,14 +86,6 @@ const ReplyForm = ({
         }
       })
       .catch((err) => console.log(err));
-  };
-
-  const postReq = (body: any) => {
-    return {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    };
   };
 
   const handlePreSubmit = (ev: any) => {
@@ -142,7 +142,7 @@ const ReplyForm = ({
 
         getDimensions(file, (fileWidth: string, fileHeight: string) => {
           if (Number(fileWidth) < 10000 || Number(fileHeight) < 10000) {
-            let fileInfo = { fileSize, fileWidth, fileHeight };
+            const fileInfo = { fileSize, fileWidth, fileHeight };
 
             uploadFile(file, post.file as string).then((res: any) => {
               if (res.status === 200) {
@@ -169,13 +169,11 @@ const ReplyForm = ({
 
         getDimensions(file, (fileWidth: string, fileHeight: string) => {
           if (Number(fileWidth) < 10000 || Number(fileWidth) < 10000) {
-            post.fileSize = fileSize;
-            post.fileWidth = fileWidth;
-            post.fileHeight = fileHeight;
+            const fileInfo = { fileSize, fileWidth, fileHeight };
 
             uploadFile(file, post.file as string).then((res: any) => {
               if (res.status === 200) {
-                submitReply(post);
+                submitReply({ ...post, ...fileInfo });
                 setPostStatus("Post successful!");
               } else {
                 setPostStatus("Error: upload failed.");
