@@ -96,7 +96,10 @@ const ReplyForm = ({
         predictImage(getImageObject(file as File)).then((predictions: any) => {
           console.log(predictions);
 
-          if (predictions[0].className === "Neutral") {
+          if (
+            predictions[0].className === "Neutral" ||
+            predictions[0].className === "Drawing"
+          ) {
             handleSubmit(file as File);
           } else {
             handleSubmit();

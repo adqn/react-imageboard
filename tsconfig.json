@@ -13,10 +13,9 @@
   },
   "include": [
     "**/*",
-    "client/src/types"
   ],
   "exclude": [
     "node_modules",
-    // "client"
+    "client"
   ],
 }

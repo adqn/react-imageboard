@@ -7,6 +7,25 @@ import * as url from "url";
 import express, { Request, Response } from "express";
 import { saveThumbnail } from "./imageTools";
 
+interface Post {
+  board: string,
+  thread?: number | string,
+  subject: string,
+  email: string,
+  name: string,
+  comment: string,
+  created?: string
+  sage?: boolean,
+  bump?: number,
+  id?: number,
+  password?: string,
+  file?: string | null,
+  fileOrig?: string | null,
+  fileSize?: number | null,
+  fileWidth?: string | null,
+  fileHeight?: string | null,
+} 
+
 const router = express.Router();
 
 const db = new sqlite3.Database("./api/db/boards.db", (err) => {
