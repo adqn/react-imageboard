@@ -1,19 +1,11 @@
 "use strict";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require("path");
-import express, { Request, Response } from "express";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+import * as path from "path";
 import * as sqlite3 from "sqlite3";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs = require("fs")
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const url = require("url");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-// import * as formidable from "formidable";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const im = require('./images');
+import * as fs from "fs";
+import * as url from "url";
+import express, { Request, Response } from "express";
+import { saveThumbnail } from "./imageTools";
 
 const router = express.Router();
 
@@ -80,7 +72,7 @@ const deleteImage = (fileName: string) => {
 
 const processImage = (file: any, filePath: string, fileName: string, callback?: any) => {
   file.mv(filePath + fileName);
-  im.resize(fileName);
+  saveThumbnail(fileName);
   callback();
 }
 
@@ -215,9 +207,9 @@ function newPost(post: Post, callback?: any) {
   if (sage) {
     db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))
   } else {
-    db.run(updateBump, ok =>
-      db.run(setBump, ok =>
-        db.run(sql, (ok: any, err: Error | null) => err ? console.log(err) : () => callback.sendStatus(200))));
+    db.run(updateBump, _ =>
+      db.run(setBump, _ =>
+        db.run(sql, (_: any, err: Error | null) => err ? console.log(err) : () => callback.sendStatus(200))));
   }
 }
 
@@ -267,11 +259,11 @@ function newThread(post: Post, res: Response) {
                 "${locked}",
                 "${sage}");`
   const sql2 = `UPDATE posts_${board} SET thread = post WHERE thread = "newthread";`
-  db.run(updateBump, (ok: any, err: Error) =>
+  db.run(updateBump, (_: any, err: Error) =>
     err ? console.log("updateBump fail: " + err) :
-      db.run(sql, (ok: any, err: Error) =>
+      db.run(sql, (_: any, err: Error) =>
         err ? console.log("sql insert fail: " + err) :
-          db.run(sql2, (ok: any, err: Error) => err ? console.log("sql update fail: " + err) : 
+          db.run(sql2, (_: any, err: Error) => err ? console.log("sql update fail: " + err) : 
             pruneThreads(board, res)
           )));
 }
@@ -315,11 +307,11 @@ function getPosts(req: Record<string, unknown>, res: Response) {
               ) ORDER BY thread ASC;`
 
       db.each(sql, (err, row) => partialThreads[row.thread] = [row],
-        ok => db.each(sql2, (err, row) => {
+        _ => db.each(sql2, (err, row) => {
           if (row.post != row.thread) {
           partialThreads[row.thread].push(row)
           }
-        }, ok => res.send(partialThreads)))
+        }, _ => res.send(partialThreads)))
     } else {
       db.each(sql, (err, row) => result.push(row), () => res.send(result));
     }
@@ -464,7 +456,7 @@ router.get("/getboards", (req, res) => {
 router.get("/getthreadstats", (req, res) => {
   const query = url.parse(req.url, true).query;
   const board = query.board;
-  getThreadStats(board, res);
+  getThreadStats(board as string, res);
 })
 
 router.get("/routes", (req, res) => {

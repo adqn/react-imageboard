@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { checkImage } from "../helpers/imageChecker";
+import { predictImage } from "../helpers/imageHelpers";
 import * as config from "../config";
 
 const api = (option: string) => "http://localhost:5001/api/" + option;
@@ -93,7 +93,7 @@ const ReplyForm = ({
 
     if (file) {
       if (config.nsfw_mode) {
-        checkImage(getImageObject(file as File)).then((predictions) => {
+        predictImage(getImageObject(file as File)).then((predictions: any) => {
           console.log(predictions);
 
           if (predictions[0].className === "Neutral") {
