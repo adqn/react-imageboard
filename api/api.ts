@@ -17,17 +17,17 @@ const db = new sqlite3.Database("./api/db/boards.db", (err) => {
   }
 });
 
-// const createDb = () =>
-//   new Promise((resolve, reject) =>
-//     fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
-//       if (err) return reject(err);
+const createDb = () =>
+  new Promise((resolve, reject) =>
+    fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
+      if (err) return reject(err);
 
-//       db.exec(data.toString(), (err) => {
-//         if (err) return reject(err);
-//         resolve();
-//       });
-//     })
-//   );
+      db.exec(data.toString(), (err) => {
+        if (err) return reject(err);
+        resolve("Board database initialized");
+      });
+    })
+  );
 
 // createDb();
 
@@ -45,7 +45,7 @@ const login = (user: Record<string, string>, res: Response) => {
                AND password = "${user.password}";`;
   
   db.get(sql, (err, row) => {
-    if (!row && res) res.sendStatus(500);
+    if (!row) res.sendStatus(500);
     else {
       const token = getToken();
       res.send(token);
@@ -54,7 +54,7 @@ const login = (user: Record<string, string>, res: Response) => {
 }
 
 //
-// misc
+// image handling
 //
 
 const deleteImage = (fileName: string) => {
@@ -99,6 +99,10 @@ const uploadFile = (req: Request, res: Response) => {
   validateFile(fileName) ? processImage(file, filePath, fileName, () => res.sendStatus(200))
     : res.sendStatus(500)
 }
+
+//
+// thread/post handling
+//
 
 const pruneThreads = (board: string, res?: Response) => {
   const threadLimit = 100;
@@ -155,11 +159,7 @@ const deletePost = (post: Post, board: string) => {
   }
 }
 
-//
-// post functions
-//
-
-function newPost(post: Post, callback?: any) {
+const newPost = (post: Post, callback?: any) => {
   const {
     board,
     thread,
@@ -213,7 +213,7 @@ function newPost(post: Post, callback?: any) {
   }
 }
 
-function newThread(post: Post, res: Response) {
+const newThread = (post: Post, res: Response) => {
   const {
     bump,
     board,
@@ -268,11 +268,7 @@ function newThread(post: Post, res: Response) {
           )));
 }
 
-//
-// post getters
-//
-
-function getPosts(req: Record<string, unknown>, res: Response) {
+const getPosts = (req: Record<string, unknown>, res: Response) => {
   const { query, board, thread, post} = req;
   const result: any = [];
   const partialThreads: any = {};
