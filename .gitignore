@@ -8,6 +8,7 @@
 
 # testing
 /coverage
+/client/coverage
 
 # production
 /build
@@ -31,3 +32,4 @@ api/db/
 api/img
 server.js
 api/api.js
+api/imageTools.js
