@@ -1,10 +1,11 @@
 "use strict";
 
-import * as path from "path";
-import * as sqlite3 from "sqlite3";
-import * as fs from "fs";
-import * as url from "url";
-import express, { Request, Response } from "express";
+import path from "path";
+import fs from "fs";
+import url from "url";
+import express, { Request, Response, NextFunction } from "express";
+import { db, knexdb } from "./db";
+import { PostModel, PostShape } from "./models/post.model";
 import { saveThumbnail } from "./imageTools";
 
 interface Post {
@@ -28,27 +29,6 @@ interface Post {
 
 const router = express.Router();
 
-const db = new sqlite3.Database("./api/db/boards.db", (err) => {
-  if (err) {
-    console.log("Unable to open database: \n" + "\t" + err.message);
-  } else {
-    console.log("Board database up");
-  }
-});
-
-const createDb = () =>
-  new Promise((resolve, reject) =>
-    fs.readFile(path.join(__dirname, "../schema.sql"), (err, data) => {
-      if (err) return reject(err);
-
-      db.exec(data.toString(), (err) => {
-        if (err) return reject(err);
-        resolve("Board database initialized");
-      });
-    })
-  );
-
-// createDb();
 
 //
 // user functions
@@ -303,7 +283,7 @@ const getPosts = (req: Record<string, unknown>, res: Response) => {
   if (query === "thread") {
     sql = `SELECT * FROM posts_${board} WHERE thread = ${thread}`;
 
-    if (post != "null") {
+    if (post !== "null") {
       sql = sql + ` LIMIT ${post}`
     }
 
@@ -313,7 +293,7 @@ const getPosts = (req: Record<string, unknown>, res: Response) => {
   if (query === "threads") {
     sql = `SELECT * FROM posts_${board} GROUP BY thread`;
 
-    if (post != "null") {
+    if (post !== "null") {
       const sql2 = `SELECT * FROM posts_${board} a WHERE a.RowId IN (
                 SELECT b.RowId
                   FROM posts_${board} b
@@ -456,6 +436,24 @@ router.get("/getposts", (req, res) => {
   const query = url.parse(req.url, true).query;
   getPosts(query, res);
 });
+
+// Objection.js GET
+router.get("/posts/:id",
+  async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const { id } = request.params;
+      //@ts-ignore
+      const post: PostShape = await PostModel.query().findById(id);
+      if (!post) {
+        throw new Error('Post not found');
+      }
+
+      return response.status(200).send(post);
+    } catch (error) {
+      return response.status(404);
+    }
+  }
+)
 
 router.get("/news/getposts", (req, res) => {
   const posts: any = [];
