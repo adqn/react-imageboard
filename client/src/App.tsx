@@ -116,11 +116,18 @@ function App() {
         <Switch>
           <Route exact path="/" component={Home} />
           {boards ? (
-            <Route
-              exact
-              path="/:uri"
-              render={(routerProps) => renderBoardRoutes(routerProps)}
-            />
+            <>
+              <Route
+                exact
+                path="/:uri"
+                render={(routerProps) => renderBoardRoutes(routerProps)}
+              />
+              <Route
+                exact
+                path="/:uri/catalog"
+                render={(routerProps) => renderThreadRoutes(routerProps)}
+              />
+            </>
           ) : (
             <DefaultLoading />
           )}
