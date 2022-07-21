@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useReducer, useCallback } from "react";
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 import Home from "./components/Home";
-import Post from "./components/Post";
+import Catalog from "./components/Catalog";
 import ReplyForm from "./components/ReplyForm";
 import Thread from "./components/Thread";
 import BoardIndex from "./components/BoardIndex";
@@ -113,35 +113,28 @@ function App() {
   return (
     <div>
       <Router>
-        <Switch>
-          <Route exact path="/" component={Home} />
-          {boards ? (
-            <>
-              <Route
-                exact
-                path="/:uri"
-                render={(routerProps) => renderBoardRoutes(routerProps)}
-              />
-              <Route
-                exact
-                path="/:uri/catalog"
-                render={(routerProps) => renderThreadRoutes(routerProps)}
-              />
-            </>
-          ) : (
-            <DefaultLoading />
-          )}
-          {routes ? (
+        <Route exact path="/" component={Home} />
+        {boards ? (
+          <>
             <Route
               exact
-              path="/:uri/thread/:id"
-              render={(routerProps) => renderThreadRoutes(routerProps)}
+              path="/:uri"
+              render={(routerProps) => renderBoardRoutes(routerProps)}
             />
-          ) : (
-            <DefaultLoading />
-          )}
-          {isLoading ? <DefaultLoading /> : <Route component={NotFound} />}
-        </Switch>
+          </>
+        ) : (
+          <DefaultLoading />
+        )}
+        {routes ? (
+          <Route
+            exact
+            path="/:uri/thread/:id"
+            render={(routerProps) => renderThreadRoutes(routerProps)}
+          />
+        ) : (
+          <DefaultLoading />
+        )}
+        <Route exact path="/:uri/catalog" component={Catalog} />
       </Router>
     </div>
   );

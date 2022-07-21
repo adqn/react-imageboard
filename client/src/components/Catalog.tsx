@@ -85,18 +85,18 @@ const OpPost = ({ post }: { post: Post }) => {
   );
 };
 
-const Catalog = ({ uri }: { uri: string }) => {
+const Catalog = (props: any) => {
   const [mappedThreads, setMappedThreads] = useState<any>([]);
 
   const getThreads = () => {
-    const threadReq = `/?query=catalog&board=${uri}&thread=null&post=null`;
+    const threadReq = `/?query=catalog&board=${props.match.params.uri}&thread=null&post=null`;
     fetch(api("getposts") + threadReq)
       .then((resp) => resp.json())
       .then((resp) => getThreadStats(resp));
   };
 
   const getThreadStats = (threads: any) => {
-    const threadStatsReq = `/?board=${uri}`;
+    const threadStatsReq = `/?board=${props.match.params.uri}`;
     fetch(api("getthreadstats") + threadStatsReq)
       .then((resp) => resp.json())
       .then((resp) => {
@@ -107,14 +107,16 @@ const Catalog = ({ uri }: { uri: string }) => {
 
   useEffect(() => {
     getThreads();
+    console.log(props);
   }, []);
 
   return (
     <div>
-      <ReplyForm index={true} uri={uri} />
+      <ReplyForm index={true} uri={props.match.params.uri} />
       <hr />
       <div className="navLinks">
-        [<a href="../../">Home</a>] [<a href={"/" + uri}>Index</a>] [
+        [<a href="../../">Home</a>] [
+        <a href={"/" + props.match.params.uri}>Index</a>] [
         <a href="#update" onClick={() => getThreads()}>
           Update
         </a>
