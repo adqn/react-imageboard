@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReplyForm from "./ReplyForm";
 import Post from "./Post";
+import NavLinks, { NavFrom } from "./NavLinks";
 import { formatComment } from "../helpers/postHelpers.js";
 
 const PostsOmitted = ({ uri, threadId }: { uri: string; threadId: number }) => {
@@ -161,14 +162,7 @@ const BoardIndex = ({ uri }: { uri: string }) => {
     <div>
       <ReplyForm index={true} uri={uri} />
       <hr />
-      <div className="navLinks desktop">
-        [
-        <a href="../../" accessKey="a">
-          Home
-        </a>
-        ] [<a href={uri + "/catalog"}>Catalog</a>] [<a href="#bottom">Bottom</a>
-        ]
-      </div>
+      <NavLinks uri={uri} from={NavFrom.index} />
       <hr />
       {threads ? <BumpSortedThreads uri={uri} threads={threads} /> : null}
     </div>

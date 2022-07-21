@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReplyForm from "./ReplyForm";
+import NavLinks, { NavFrom } from "./NavLinks";
 import { formatComment } from "../helpers/postHelpers.js";
 
 const api = (option: string) => "http://localhost:5001/api/" + option;
@@ -114,14 +115,7 @@ const Catalog = (props: any) => {
     <div>
       <ReplyForm index={true} uri={props.match.params.uri} />
       <hr />
-      <div className="navLinks">
-        [<a href="../../">Home</a>] [
-        <a href={"/" + props.match.params.uri}>Index</a>] [
-        <a href="#update" onClick={() => getThreads()}>
-          Update
-        </a>
-        ]
-      </div>
+      <NavLinks uri={props.match.params.uri} from={NavFrom.catalog} />
       <hr />
       <div className="catalog container">
         {mappedThreads

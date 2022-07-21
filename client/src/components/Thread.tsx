@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Post from "./Post";
+import NavLinks, { NavFrom } from "./NavLinks";
 import ReplyForm from "./ReplyForm";
 
 const Posts = ({ posts }: { posts: Post[] }) => (
@@ -45,13 +46,7 @@ function Thread({ uri, id }: { uri: string; id: number }) {
     <div>
       <div className="ThreadContainer">
         <hr className="desktop" id="op" />
-        <div className="navLinks desktop">
-          [
-          <a href="../../" accessKey="a">
-            Return
-          </a>
-          ] [<a href="../../catalog">Catalog</a>] [<a href="#bottom">Bottom</a>]
-        </div>
+        <NavLinks uri={uri} from={NavFrom.thread} />
         <hr className="desktop" id="op" />
         <Posts posts={posts} />
         <hr className="desktop" id="op" />
