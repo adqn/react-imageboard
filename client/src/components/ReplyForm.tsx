@@ -196,7 +196,7 @@ const ReplyForm = ({
 
   return (
     <div id="replyField">
-      <table>
+      <div>
         <form
           name="post"
           action=""
@@ -207,88 +207,87 @@ const ReplyForm = ({
         <input type="hidden" name="mode" value="regist" />
         <input type="hidden" id="postPassword" name="pwd" />
         <input type="hidden" name="resto" value="23291294" />
+      </div>
+      <table className="postForm" id="postForm">
+        <tbody>
+          <tr data-type="Name">
+            <td>Name</td>
+            <td>
+              <input
+                name="name"
+                type="text"
+                tabIndex={1}
+                placeholder="Anonymous"
+                value={name}
+                onChange={(ev: any) => setName(ev.target.value)}
+              />
+            </td>
+          </tr>
 
-        <table className="postForm" id="postForm">
-          <tbody>
+          {index ? (
             <tr data-type="Name">
-              <td>Name</td>
+              <td>Subject</td>
               <td>
                 <input
-                  name="name"
+                  name="subject"
                   type="text"
                   tabIndex={1}
-                  placeholder="Anonymous"
-                  value={name}
-                  onChange={(ev: any) => setName(ev.target.value)}
+                  placeholder=""
+                  value={subject}
+                  onChange={(ev: any) => setSubject(ev.target.value)}
                 />
               </td>
             </tr>
+          ) : null}
 
-            {index ? (
-              <tr data-type="Name">
-                <td>Subject</td>
-                <td>
-                  <input
-                    name="subject"
-                    type="text"
-                    tabIndex={1}
-                    placeholder=""
-                    value={subject}
-                    onChange={(ev: any) => setSubject(ev.target.value)}
-                  />
-                </td>
-              </tr>
-            ) : null}
+          <tr data-type="Email">
+            <td>Email</td>
+            <td>
+              <input
+                name="email"
+                type="text"
+                tabIndex={2}
+                value={email}
+                onChange={(ev: any) => setEmail(ev.target.value)}
+              />
 
-            <tr data-type="Email">
-              <td>Email</td>
-              <td>
-                <input
-                  name="email"
-                  type="text"
-                  tabIndex={2}
-                  value={email}
-                  onChange={(ev: any) => setEmail(ev.target.value)}
-                />
+              <input
+                type="submit"
+                value="Post"
+                tabIndex={6}
+                onClick={(ev: any) => handlePreSubmit(ev)}
+              />
+            </td>
+          </tr>
 
-                <input
-                  type="submit"
-                  value="Post"
-                  tabIndex={6}
-                  onClick={(ev: any) => handlePreSubmit(ev)}
-                />
-              </td>
-            </tr>
+          <tr data-type="Comment">
+            <td>Comment</td>
+            <td>
+              <textarea
+                name="com"
+                cols={48}
+                rows={4}
+                wrap="soft"
+                tabIndex={4}
+                value={comment}
+                onChange={(ev: any) => setComment(ev.target.value)}
+              />
+            </td>
+          </tr>
 
-            <tr data-type="Comment">
-              <td>Comment</td>
-              <td>
-                <textarea
-                  name="com"
-                  cols={48}
-                  rows={4}
-                  wrap="soft"
-                  tabIndex={4}
-                  value={comment}
-                  onChange={(ev: any) => setComment(ev.target.value)}
-                />
-              </td>
-            </tr>
-
-            <tr data-type="File">
-              <td>File</td>
-              <td>
-                <input
-                  id="postFile"
-                  name="upfile"
-                  type="file"
-                  tabIndex={7}
-                  onChange={(ev: any) => setFile(ev.target.files[0])}
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <tr data-type="File">
+            <td>File</td>
+            <td>
+              <input
+                id="postFile"
+                name="upfile"
+                type="file"
+                tabIndex={7}
+                onChange={(ev: any) => setFile(ev.target.files[0])}
+              />
+            </td>
+          </tr>
+        </tbody>
       </table>
       <div className="postStatus">{postStatus}</div>
     </div>

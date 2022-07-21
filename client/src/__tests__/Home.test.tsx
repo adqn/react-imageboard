@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM, { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
-import Home from "./Home";
+import Home from "../components/Home";
 
-let container = null;
+let container: any = null;
 beforeEach(() => {
   container = document.createElement("div");
   document.body.appendChild(container);

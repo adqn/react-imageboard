@@ -1,9 +1,9 @@
 import React from "react";
 import { render, unmountComponentAtNode } from "react-dom";
 import { act } from "react-dom/test-utils";
-import Thread from "./Thread";
+import Catalog from "../components/Catalog";
 
-let container = null;
+let container: any = null;
 beforeEach(() => {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -15,10 +15,10 @@ afterEach(() => {
   container = null;
 });
 
-describe("Thread component testing", () => {
-  it("Thread component renders", () => {
+describe("Catalog component testing", () => {
+  it("Catalog component renders", () => {
     act(() => {
-      render(<Thread />, container);
+      render(<Catalog uri={"/know/"} />, container);
     });
   });
 });
