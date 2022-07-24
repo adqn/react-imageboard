@@ -10,7 +10,7 @@ export class PostModel extends Model {
   created?: string;
   sage?: boolean;
   bump?: number;
-  id?: number;
+  post!: number;
   password?: string;
   file?: string | null;
   fileOrig?: string | null;
@@ -19,7 +19,7 @@ export class PostModel extends Model {
   fileHeight?: string | null;
 
   static tableName = 'posts_b';
-  static idColumn = 'id';
+  static idColumn = 'post';
 }
 
 export type PostShape = ModelObject<PostModel>

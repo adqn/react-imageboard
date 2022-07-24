@@ -1,7 +1,4 @@
 import express, { Express, Request, Response, NextFunction } from "express";
-import { Model } from 'objection';
-import { PostModel } from "./api/models/post.model";
-import Knex from 'knex';
 import * as dotenv from "dotenv";
 import fileUpload from "express-fileupload";
 import fs from "fs";

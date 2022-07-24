@@ -478,7 +478,7 @@ router.get("/posts/:id",
 
       return response.status(200).send(post);
     } catch (error) {
-      return response.status(404);
+      return response.status(404).send("Post not found");
     }
   }
 )
