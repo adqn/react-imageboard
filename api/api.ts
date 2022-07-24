@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import url from "url";
 import express, { Request, Response, NextFunction } from "express";
-import { db, knexdb } from "./db";
+import { db, knexInstance } from "./db";
 import { PostModel, PostShape } from "./models/post.model";
 import { saveThumbnail } from "./imageTools";
 
@@ -29,6 +29,27 @@ interface Post {
 
 const router = express.Router();
 
+const seedPosts = async () =>
+await knexInstance('posts_b')
+  .insert({
+    // board: "b",
+    thread: "2",
+    subject: "second test thread",
+    email: "sage",
+    name: "Anonymous",
+    comment: "First test comment",
+    sage: 0,
+    bump: 1,
+    password: null,
+    file: "testfile.jpg",
+    fileorig: "testfileorig.jpg",
+    filesize: 200200,
+    filewidth: "200",
+    fileheight: "200",
+  })
+  .returning("*");
+
+seedPosts();
 
 //
 // user functions
@@ -437,6 +458,13 @@ router.get("/getposts", (req, res) => {
   getPosts(query, res);
 });
 
+router.get("/news/getposts", (req, res) => {
+  const posts: any = [];
+  const sql = `SELECT * FROM news ORDER BY postId DESC;`
+
+  db.each(sql, (err, row) => posts.push(row), () => res.send(posts));
+})
+
 // Objection.js GET
 router.get("/posts/:id",
   async (request: Request, response: Response, next: NextFunction) => {
@@ -455,12 +483,6 @@ router.get("/posts/:id",
   }
 )
 
-router.get("/news/getposts", (req, res) => {
-  const posts: any = [];
-  const sql = `SELECT * FROM news ORDER BY postId DESC;`
-
-  db.each(sql, (err, row) => posts.push(row), () => res.send(posts));
-})
 
 router.get("/getboards", (req, res) => {
   getBoards(res);

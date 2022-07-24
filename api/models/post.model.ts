@@ -1,7 +1,7 @@
 import { Model, ModelObject } from "objection";
 
 export class PostModel extends Model {
-  board!: string;
+  // board!: string;
   thread?: number | string;
   subject!: string;
   email!: string;
@@ -18,8 +18,8 @@ export class PostModel extends Model {
   fileWidth?: string | null;
   fileHeight?: string | null;
 
-  static tableName = 'post';
-  static idColumb = 'id';
+  static tableName = 'posts_b';
+  static idColumn = 'id';
 }
 
 export type PostShape = ModelObject<PostModel>

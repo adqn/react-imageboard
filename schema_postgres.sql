@@ -1,0 +1,55 @@
+CREATE TABLE IF NOT EXISTS posts_b ( 
+    post SERIAL PRIMARY KEY,
+    thread INTEGER DEFAULT NULL,
+    subject TEXT DEFAULT NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    email TEXT DEFAULT NULL,
+    name TEXT,
+    comment TEXT,
+    file TEXT DEFAULT NULL,
+    fileOrig TEXT DEFAULT NULL,
+    fileSize TEXT DEFAULT NULL,
+    fileWidth INTEGER DEFAULT NULL,
+    fileHeight INTEGER DEFAULT NULL,
+    fileHash TEXT DEFAULT NULL,
+    password TEXT DEFAULT NULL,
+    ip TEXT DEFAULT NULL, 
+    bump INTEGER DEFAULT NULL,
+    sticky INTEGER DEFAULT NULL,
+    locked INTEGER DEFAULT NULL,
+    sage INTEGER DEFAULT NULL 
+);
+
+CREATE TABLE IF NOT EXISTS posts_know ( 
+    post PRIMARY KEY,
+    thread INTEGER DEFAULT NULL,
+    subject TEXT DEFAULT NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    email TEXT DEFAULT NULL,
+    name TEXT,
+    comment TEXT,
+    file TEXT DEFAULT NULL,
+    fileOrig TEXT DEFAULT NULL,
+    fileSize TEXT DEFAULT NULL,
+    fileWidth INTEGER DEFAULT NULL,
+    fileHeight INTEGER DEFAULT NULL,
+    fileHash TEXT DEFAULT NULL,
+    password TEXT DEFAULT NULL,
+    ip TEXT DEFAULT NULL, 
+    bump INTEGER DEFAULT NULL,
+    sticky INTEGER DEFAULT NULL,
+    locked INTEGER DEFAULT NULL,
+    sage INTEGER DEFAULT NULL 
+);
+
+CREATE TABLE IF NOT EXISTS boards (
+    uri TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    subtitle TEXT DEFAULT NULL
+);
+
+INSERT INTO boards VALUES
+('b', 'Random', NULL);
+
+INSERT INTO boards VALUES
+('know', 'Knowledge and Information', NULL);-- 

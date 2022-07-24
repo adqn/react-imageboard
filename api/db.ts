@@ -26,14 +26,15 @@ const createDb = () =>
 
 // createDb();
 
- export const knexdb = Knex({
-  client: "sqlite3",
+export const knexInstance = Knex({
+  client: "pg",
   connection: {
-    filename: "./db/boards.db",
+    host: "localhost",
     database: "boards_test",
+    port: 5432,
+    password: "soupchan",
+    user: "soupchan",
   },
-  useNullAsDefault: true,
-  migrations: {
-    directory: "./db/migrations",
-  }
 })
+
+Model.knex(knexInstance);
