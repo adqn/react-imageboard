@@ -20,6 +20,27 @@ export class PostModel extends Model {
 
   static tableName = 'posts_b';
   static idColumn = 'post';
+
+  fileAttrs() {
+    return {
+      file: this.file,
+      fileOrig: this.fileOrig,
+      fileSize: this.fileSize,
+      fileWidth: this.fileWidth,
+      fileHeight: this.fileHeight,
+    }
+  }
+
+  postInfo() {
+    return {
+      post: this.post,
+      thread: this.thread,
+      subject: this.subject,
+      email: this.email,
+      name: this.name,
+      comment: this.comment,
+    }
+  }
 }
 
 export type PostShape = ModelObject<PostModel>

@@ -49,7 +49,7 @@ await knexInstance('posts_b')
   })
   .returning("*");
 
-seedPosts();
+// seedPosts();
 
 //
 // user functions
@@ -470,13 +470,12 @@ router.get("/posts/:id",
   async (request: Request, response: Response, next: NextFunction) => {
     try {
       const { id } = request.params;
-      //@ts-ignore
-      const post: PostShape = await PostModel.query().findById(id);
+      const post = await PostModel.query().findById(id);
       if (!post) {
         throw new Error('Post not found');
       }
 
-      return response.status(200).send(post);
+      return response.status(200).send(post.postInfo());
     } catch (error) {
       return response.status(404).send("Post not found");
     }
