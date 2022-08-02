@@ -5,6 +5,8 @@ import fs from "fs";
 import path from "path";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const api = require('./api/api');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const api2 = require('./api/api_objection');
 
 dotenv.config();
 const app: Express = express();
@@ -22,7 +24,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 app.use(fileUpload({ createParentPath: true }))
 app.use('/img', express.static('./api/img'));
-app.use('/api', api);
+app.use('/api', api2);
 
 app.get("/test", (req: Request, res: Response) => {
   res.writeHead(200, { "content-type": "text/html" });

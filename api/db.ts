@@ -32,8 +32,8 @@ export const knexInstance = Knex({
     host: "localhost",
     database: "soupchan_test",
     port: 5432,
-    password: "postgres",
-    user: "postgres",
+    password: "soupchan",
+    user: "soupchan",
   },
 })
 

@@ -1,19 +1,20 @@
 {
   "extends": "@tsconfig/node16/tsconfig.json",
+  "outDir": "dist",
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "es2022",
-    "target": "es2022",
+    "module": "commonjs",
+    "target": "es2016",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
   },
   "include": [
-    "**/*",
+    "server.ts",
+    "api/**/*"
   ],
   "exclude": [
     "node_modules",

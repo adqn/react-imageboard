@@ -156,7 +156,7 @@ const deletePost = (post: Post, board: string) => {
   const queryAndDelete = (getImage: string, deletePost: string) =>
     db.serialize(() => {
       db.get(getImage, (err, row) => {
-        if (row.file != "null") {
+        if (row.file !== "null") {
           deleteImage(row.file);
         }
       })
@@ -183,7 +183,6 @@ const newPost = (post: Post, callback?: any) => {
   const {
     board,
     thread,
-    created,
     email,
     name,
     comment,
@@ -227,8 +226,8 @@ const newPost = (post: Post, callback?: any) => {
   if (sage) {
     db.run(sql, err => err ? console.log(err) : () => callback.sendStatus(200))
   } else {
-    db.run(updateBump, _ =>
-      db.run(setBump, _ =>
+    db.run(updateBump, () =>
+      db.run(setBump, () =>
         db.run(sql, (_: any, err: Error | null) => err ? console.log(err) : () => callback.sendStatus(200))));
   }
 }
@@ -238,7 +237,6 @@ const newThread = (post: Post, res: Response) => {
     bump,
     board,
     thread,
-    created,
     subject,
     email,
     name,
@@ -323,11 +321,11 @@ const getPosts = (req: Record<string, unknown>, res: Response) => {
               ) ORDER BY thread ASC;`
 
       db.each(sql, (err, row) => partialThreads[row.thread] = [row],
-        _ => db.each(sql2, (err, row) => {
-          if (row.post != row.thread) {
+        () => db.each(sql2, (err, row) => {
+          if (row.post !== row.thread) {
           partialThreads[row.thread].push(row)
           }
-        }, _ => res.send(partialThreads)))
+        }, () => res.send(partialThreads)))
     } else {
       db.each(sql, (err, row) => result.push(row), () => res.send(result));
     }
@@ -464,24 +462,6 @@ router.get("/news/getposts", (req, res) => {
 
   db.each(sql, (err, row) => posts.push(row), () => res.send(posts));
 })
-
-// Objection.js GET
-router.get("/posts/:id",
-  async (request: Request, response: Response, next: NextFunction) => {
-    try {
-      const { id } = request.params;
-      const post = await PostModel.query().findById(id);
-      if (!post) {
-        throw new Error('Post not found');
-      }
-
-      return response.status(200).send(post.postInfo());
-    } catch (error) {
-      return response.status(404).send("Post not found");
-    }
-  }
-)
-
 
 router.get("/getboards", (req, res) => {
   getBoards(res);

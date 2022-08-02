@@ -1,6 +1,9 @@
 import { Model, ModelObject } from "objection";
 
 export class PostModel extends Model {
+  static tableName: string;
+  static idColumn = 'post';
+
   // board!: string;
   thread?: number | string;
   subject!: string;
@@ -9,7 +12,7 @@ export class PostModel extends Model {
   comment!: string;
   created?: string;
   sage?: boolean;
-  bump?: number;
+  bump?: number | null;
   post!: number;
   password?: string;
   file?: string | null;
@@ -17,9 +20,6 @@ export class PostModel extends Model {
   fileSize?: number | null;
   fileWidth?: string | null;
   fileHeight?: string | null;
-
-  static tableName = 'posts_b';
-  static idColumn = 'post';
 
   fileAttrs() {
     return {
