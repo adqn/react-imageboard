@@ -470,6 +470,7 @@ router.get("/getboards", (req, res) => {
 router.get("/getthreadstats", (req, res) => {
   const query = url.parse(req.url, true).query;
   const board = query.board;
+
   getThreadStats(board as string, res);
 })
 
